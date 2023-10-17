@@ -1,0 +1,514 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "User Api",
+    "description": "User API",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000"
+    }
+  ],
+  "paths": {
+    "/api/users": {
+      "post": {
+        "description": "Register New User",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "data": {
+                  "description": "Register New User",
+                  "value": {
+                    "branchcode": "int",
+                    "username": "denydemang",
+                    "name": "Deny Kurniawan",
+                    "password": "rahasia",
+                    "id_role": 1
+                  }
+                }
+              },
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "branchcode",
+                  "name",
+                  "password",
+                  "id_role"
+                ],
+                "properties": {
+                  "branchcode": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "id_role": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "validationerror": {
+                    "description": "Validation Error",
+                    "value": {
+                      "errors": {
+                        "username": [
+                          "username already exists",
+                          "username cannot be blank"
+                        ],
+                        "name": ["name cannot be blank"]
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "array"
+                        },
+                        "name": {
+                          "type": "array"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Success Register New User",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "successregister": {
+                    "description": "Success Register new User",
+                    "value": {
+                      "data": {
+                        "id": 1,
+                        "username": "denydemang",
+                        "name": "Deny Kurniawan"
+                      },
+                      "success": "New User Successfully Created"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "success": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "description": "Get All Users",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header"
+          },
+          {
+            "name": "branchcode",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success Get All User",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "successgetalluser": {
+                    "description": "Success Get All User",
+                    "value": {
+                      "data": [
+                        {
+                          "id": 1,
+                          "branchcode": "int",
+                          "username": "denydemang",
+                          "name": "Deny Kurniawan",
+                          "id_role": 1,
+                          "role_name": "Kasir",
+                          "status": 1
+                        },
+                        {
+                          "id": 2,
+                          "branchcode": "int",
+                          "username": "demanguhuy",
+                          "name": "Deny Sumargo",
+                          "id_role": 2,
+                          "role_name": "Superadmin",
+                          "status": 1
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{keyidorkeyusername}": {
+      "get": {
+        "description": "Get Specific User By Key",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success Get Specific User By Key",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "successgetspecificuser": {
+                    "description": "Success Get Specific User By Key",
+                    "value": {
+                      "data": {
+                        "id": 1,
+                        "branchcode": "int",
+                        "username": "denydemang",
+                        "name": "Deny Kurniawan",
+                        "id_role": 1,
+                        "status": 1
+                      },
+                      "success": "Success Get Specific User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User Not Found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "usernotfound": {
+                    "description": "User Not Found",
+                    "value": {
+                      "data": {},
+                      "errors": {
+                        "general": ["User Not Found"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Update Specific User By Key",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "data": {
+                  "description": "Update Specific User",
+                  "value": {
+                    "name": "Deny Kurniawan",
+                    "password": "rahasia",
+                    "id_role": 1
+                  }
+                }
+              },
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "branchcode",
+                  "name",
+                  "password",
+                  "id_role"
+                ],
+                "properties": {
+                  "branchcode": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "id_role": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success Update User",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "successupdatedata": {
+                    "description": "Success Update Data",
+                    "value": {
+                      "data": {
+                        "id": 1,
+                        "username": "denydemang",
+                        "name": "Deny Kurniawan"
+                      },
+                      "success": "User Successfully Updated"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/login": {
+      "post": {
+        "description": "Login User",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "successlogin": {
+                  "description": "Success Login",
+                  "value": {
+                    "username": "denydemang",
+                    "password": "rahasia"
+                  }
+                }
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Success",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "successlogin": {
+                    "description": "Success Login",
+                    "value": {
+                      "data": {
+                        "id": 1,
+                        "name": "Deny Kurniawan",
+                        "username": "denydemang",
+                        "role": "kasir",
+                        "branchcode": "int",
+                        "token": "dwd1212"
+                      },
+                      "success": "Login Success"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed Login",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "failedlogin": {
+                    "description": "failed to login",
+                    "value": {
+                      "errors": {
+                        "username": ["username must not be blank"],
+                        "password": ["password must not be blank"],
+                        "general": ["username or password is invalid"]
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "array"
+                        },
+                        "password": {
+                          "type": "array"
+                        },
+                        "general": {
+                          "type": "array"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/logout": {
+      "delete": {
+        "description": "Logout User",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query"
+          },
+          {
+            "name": "authorization",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully Logout",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "successuserlogout": {
+                    "description": "Successfully Logout",
+                    "value": {
+                      "data": {
+                        "id": 1,
+                        "username": "DenyDemang"
+                      },
+                      "success": "Successfully Log Out"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/delete/{id}": {
+      "delete": {
+        "description": "Delete User By Key",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success Delete User",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "successregister": {
+                    "description": "Success Delete User",
+                    "value": {
+                      "data": {
+                        "id": 1,
+                        "username": "denydemang",
+                        "name": "Deny Kurniawan"
+                      },
+                      "success": "User Successfully Deleted"
+                    }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "success": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
