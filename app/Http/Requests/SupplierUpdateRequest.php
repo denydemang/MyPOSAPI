@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class SupplierCreateRequest extends FormRequest
+class SupplierUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,10 +26,10 @@ class SupplierCreateRequest extends FormRequest
     public function rules()
     {
         return [
-            "branchcode" =>"required",
             "name" => "required",
             "address" => "required",
             "contact" => "required",
+            "active" => "required"
         ];
     }
     protected function failedValidation(Validator $validator){

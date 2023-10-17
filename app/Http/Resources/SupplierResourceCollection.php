@@ -16,7 +16,7 @@ class SupplierResourceCollection extends ResourceCollection
     {
         return [
             "data" => $this->collection,
-            "success" => "Successfully Get All Suppliers"
+            "success" => "Successfully Get Suppliers"
         ];
     }
 }

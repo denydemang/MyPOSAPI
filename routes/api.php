@@ -38,6 +38,9 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::get('/supplier/list/{numberperpage}/{branchcode}' ,'getall');
         Route::get('/supplier/detail/{id}' ,'get');
         Route::get('/supplier/{branchcode}/search' ,'search');
+        Route::put('/supplier/{id}' ,'update');
+        Route::post('/supplier' ,'create');
+        Route::delete('/supplier/{id}' ,'delete');
     }); 
 });
 

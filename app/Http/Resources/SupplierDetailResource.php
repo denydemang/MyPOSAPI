@@ -12,19 +12,26 @@ class SupplierDetailResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
+
+    public $msg;
+    public function __construct($resource, $msg)
+    {
+        parent::__construct($resource);
+        $this->msg =$msg;
+    }
     public function toArray($request)
     {
         return [
             "data" =>  [
-                "branchcode" =>$this->branchcode,
-                "id" =>$this->id,
-                "name" =>$this->name,
-                "address" =>$this->address,
-                "contact" =>$this->contact,
-                "active" =>$this->active,
+                "branchcode" =>$this->resource->branchcode,
+                "id" =>$this->resource->id,
+                "name" =>$this->resource->name,
+                "address" =>$this->resource->address,
+                "contact" =>$this->resource->contact,
+                "active" =>$this->resource->active,
             
             ],
-            "success" => "Succedfully Get Sepicific Supplier"
+            "success" => $this->msg
         ];
     }
 }
