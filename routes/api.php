@@ -26,7 +26,6 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::post('/users' ,'register');
         Route::put("/users/{id}", "update");
         Route::get('/users/checkcompany/{key}',"checkcompany");
-        Route::patch('/users/updatebranch',"updatebranch");
     });
 
     Route::controller(ProductController::class)->group(function(){

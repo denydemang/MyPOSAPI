@@ -7,6 +7,7 @@ use App\Http\Requests\UserRegisterRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\UserResourceCollection;
+use App\Models\CompanyProfile;
 use App\Models\remember_token;
 use App\Models\User;
 use App\Models\UserView;
@@ -265,46 +266,23 @@ class UserController extends Controller
     public function checkcompany($key) : JsonResponse
     {
         try {
-            $data = User::where("id", $key)->orWhere("username", $key)->first();
-        } catch (\Throwable $th) {
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        $th->getMessage()
-                    ]
-                ]
-                ],500));
-        }
-        if(!$data){
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "User Not Found"
-                    ]
-                ]
-                ],404));
-        }
+            $user = User::where("id", $key)->orWhere("username", $key)->first();
+            if($user) {
+                $isexistcompany = CompanyProfile::where("branchcode", $user->branchcode)->first();
 
-        if(!($data->branchcode)){
-            return response()->json([
-                "data" => false
-            ])->setStatusCode(200);
-        } else {
-            return response()->json([
-                "data" => true
-            ])->setStatusCode(200);
-        }
-    }
-    public function updatebranch(Request $request) : JsonResponse
-    {
-
-        $branchcode =$request->get('branchcode');
-        $key =$request->get('key');
-        try {
-            $data = User::where("id", $key)->orWhere("username", $key)->first();
-            if ($branchcode && $key && $data){
-                $data->branchcode = $branchcode;
-                $data->update();
+                if($isexistcompany){
+                    return response()->json([
+                        "data" => [
+                            "iscompanyexists" => true,
+                        ]
+                        ]);
+                } else{
+                    return response()->json([
+                        "data" => [
+                            "iscompanyexists" =>false
+                        ]
+                        ]);
+                }
             }
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
@@ -315,35 +293,17 @@ class UserController extends Controller
                 ]
                 ],500));
         }
-
-        if (!$branchcode){
+        if(!$user){
             throw new HttpResponseException(response([
                 "errors" => [
                     "general" => [
-                        "Need Parameter BranchCode"
+                        "User Not Found"
                     ]
                 ]
-                ],400));
+                ],404));
         }
-        if (!$key) {
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "Need Parameter Key (username or id)"
-                    ]
-                ]
-                ],400));
-        }
-
-        return response()->json([
-            "data" =>[
-                "id" => $data->id,
-                "username" => $data->username,
-                "branchcode" => $data->branchcode,
-            ],
-            "success" => "Successfully Updated Branch Code"
-        ]);
 
     }
+
 
 }
