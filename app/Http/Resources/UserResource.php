@@ -13,11 +13,13 @@ class UserResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-    public $msg;
-    public function __construct($resource, $msg)
+    protected $msg;
+    protected $token;
+    public function __construct($resource, $msg , $token = null)
     {
         parent::__construct($resource);
         $this->msg =$msg;
+        $this->token =$token;
     }
     public function toArray($request) :array
     {
@@ -30,7 +32,7 @@ class UserResource extends JsonResource
                 "username" => $this->resource->username,
                 "role" => $this->resource->id_role,
                 "branchcode" => $this->resource->branchcode,
-                "token" => $this->whenNotNull($this->resource->token),
+                "token" => $this->whenNotNull($this->token),
             ],
             "success" => $this->msg
         ];

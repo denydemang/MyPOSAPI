@@ -2,9 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\remember_token;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ApiAuthMiddleware
 {
@@ -17,6 +19,7 @@ class ApiAuthMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
+        date_default_timezone_set('Asia/Jakarta');
         $token = $request->header('Authorization'); //get token dari header
         $authenticate =true; //status authentikasi
 
@@ -26,14 +29,13 @@ class ApiAuthMiddleware
             $authenticate =false; //ubah authenticate menjadi false
         } else //jika ada token
         {
-            $user = User::where('token', $token)->first();
-            if ($user) //jika token nya  ada didatabase
+            $gettoken = remember_token::where("token", $token)->first();
+            if ($gettoken) //jika token nya  ada didatabase
             {
                 date_default_timezone_set('Asia/Jakarta');
                 $now = strtotime(date('Y-m-d h:m:s'));
-                $expired = strtotime(date($user->token_expired));
-                
-                if ( $now >= $expired  || empty($user->token_expired)){
+                $expired = strtotime(date($gettoken->token_expired));
+                if ( $now >= $expired ){
                     $authenticate = false;
                 } 
             }else{

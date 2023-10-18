@@ -18,13 +18,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::middleware(ApiAuthMiddleware::class)->group(function(){
+
     Route::controller(UserController::class)->group(function(){
         Route::get('/users/{id}', "get");
         Route::delete('/users/delete/{id}', 'delete');
         Route::get('/users' ,'getall');
         Route::post('/users' ,'register');
         Route::put("/users/{id}", "update");
+        Route::get('/users/checkcompany/{key}',"checkcompany");
+        Route::patch('/users/updatebranch',"updatebranch");
     });
+
     Route::controller(ProductController::class)->group(function(){
         Route::post('/products' ,'create');
         Route::get('/products/{branchcode}/search' ,'search');
@@ -33,7 +37,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::get('/products/list/{numberperpage}/{branchcode}' ,'getall');
         Route::get('/products/detail/{idorbarcode}' ,'get');
     });
-
+    
     Route::controller(SupplierController::class)->group(function(){
         Route::get('/supplier/list/{numberperpage}/{branchcode}' ,'getall');
         Route::get('/supplier/detail/{id}' ,'get');

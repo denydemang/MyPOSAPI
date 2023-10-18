@@ -7,6 +7,7 @@ use App\Http\Requests\UserRegisterRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\UserResourceCollection;
+use App\Models\remember_token;
 use App\Models\User;
 use App\Models\UserView;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -53,37 +54,18 @@ class UserController extends Controller
     public function login(UserLoginRequest $request) : UserResource
     {
         $dataValidated = $request->validated();
-        $user = User::where("username", $dataValidated["username"])->where('active', 1)->first();
-
-        if (!$user || !Hash::check($dataValidated['password'], $user->password)) {
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "username or password is invalid" 
-                    ]
-                ]
-                ],401));
-        }
-        if (!empty($user->token)){
-            date_default_timezone_set('Asia/Jakarta');
-            $now = strtotime(date('Y-m-d h:m:s'));
-            $expired = strtotime(date($user->token_expired));
-            if ($now <= $expired && !empty($user->token_expired))
-            {
-                throw new HttpResponseException(response([
-                    "errors" => [
-                        "general" => [
-                            "You are already logged in" 
-                        ]
-                    ]
-                    ],400));
-            }
-        }
+        date_default_timezone_set('Asia/Jakarta');
+        remember_token::where("token_expired" , "<=" ,date('Y-m-d h:m:s'))->delete();
         try {
-            date_default_timezone_set('Asia/Jakarta');
-            $user->token = Str::uuid()->toString();
-            $user->token_expired = date("Y-m-d H:i:s" ,strtotime('+8 hours'));
-            $user->save();
+            $user = User::where("username", $dataValidated["username"])->where('active', 1)->first();
+            if($user && Hash::check($dataValidated['password'], $user->password)){
+                $remember_token = new remember_token();
+                $remember_token->token = Str::uuid()->toString();
+                $remember_token->token_expired = date("Y-m-d H:i:s" ,strtotime('+8 hours'));
+                $remember_token->id_user = $user->id;
+                $remember_token->save();
+
+            }
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -93,36 +75,32 @@ class UserController extends Controller
                 ]
                 ],500));
         };
-        return new UserResource($user, "User Login Successfully");
-    }
-    public function logout(Request $request) :JsonResponse
-    {
-        $id = $request->input("id");
-
-        $user = User::where("id" , $id)->first();
-
-        if (!$user){
+        if (!$user || !Hash::check($dataValidated['password'], $user->password)) {
             throw new HttpResponseException(response([
                 "errors" => [
                     "general" => [
-                        "ID is Invalid" 
+                        "username or password is invalid" 
                     ]
                 ]
                 ],401));
         }
+        return new UserResource($user, "User Login Successfully", $remember_token->token);
+    }
+    public function logout(Request $request) :JsonResponse
+    {
+        date_default_timezone_set('Asia/Jakarta');
 
         try {
-            $data = [
-                "data" => [
-                    "id" => $user->id,
-                    "username" =>$user->username
-                    ] ,
-                "success" => "Successfully Log Out"
-                ];
-            $user->token =null;
-            $user->token_expired =null;
-            $user->update();
+            remember_token::where("token_expired" , "<=" ,date('Y-m-d h:m:s'))->delete();
+            $token = $request->input("token");
+            $gettoken = remember_token::where("token", $token)->first();
+            if($gettoken){
 
+                $data = [
+                    "success" => "Successfully Log Out"
+                    ];
+                $gettoken->delete();
+            }
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -132,6 +110,16 @@ class UserController extends Controller
                 ]
                 ],500));
         }
+
+        if (!$gettoken){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "Token Not Exists" 
+                    ]
+                ]
+                ],401));
+        } 
         return response()->json($data)->setStatusCode(200);
     }
     public function getall(Request $request) :JsonResponse
@@ -271,6 +259,89 @@ class UserController extends Controller
                 "username" => $user->username,
             ],
             "success" => "User Successfully Updated"
+        ]);
+
+    }
+    public function checkcompany($key) : JsonResponse
+    {
+        try {
+            $data = User::where("id", $key)->orWhere("username", $key)->first();
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if(!$data){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "User Not Found"
+                    ]
+                ]
+                ],404));
+        }
+
+        if(!($data->branchcode)){
+            return response()->json([
+                "data" => false
+            ])->setStatusCode(200);
+        } else {
+            return response()->json([
+                "data" => true
+            ])->setStatusCode(200);
+        }
+    }
+    public function updatebranch(Request $request) : JsonResponse
+    {
+
+        $branchcode =$request->get('branchcode');
+        $key =$request->get('key');
+        try {
+            $data = User::where("id", $key)->orWhere("username", $key)->first();
+            if ($branchcode && $key && $data){
+                $data->branchcode = $branchcode;
+                $data->update();
+            }
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+
+        if (!$branchcode){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "Need Parameter BranchCode"
+                    ]
+                ]
+                ],400));
+        }
+        if (!$key) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "Need Parameter Key (username or id)"
+                    ]
+                ]
+                ],400));
+        }
+
+        return response()->json([
+            "data" =>[
+                "id" => $data->id,
+                "username" => $data->username,
+                "branchcode" => $data->branchcode,
+            ],
+            "success" => "Successfully Updated Branch Code"
         ]);
 
     }
