@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
@@ -38,12 +39,20 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     });
     
     Route::controller(SupplierController::class)->group(function(){
-        Route::get('/supplier/list/{numberperpage}/{branchcode}' ,'getall');
-        Route::get('/supplier/detail/{id}' ,'get');
-        Route::get('/supplier/{branchcode}/search' ,'search');
-        Route::put('/supplier/{id}' ,'update');
-        Route::post('/supplier' ,'create');
-        Route::delete('/supplier/{id}' ,'delete');
+        Route::get('/suppliers/list/{numberperpage}/{branchcode}' ,'getall');
+        Route::get('/suppliers/detail/{id}' ,'get');
+        Route::get('/suppliers/{branchcode}/search' ,'search');
+        Route::put('/suppliers/{id}' ,'update');
+        Route::post('/suppliers' ,'create');
+        Route::delete('/suppliers/{id}' ,'delete');
+    }); 
+    Route::controller(CompanyProfileController::class)->group(function(){
+        Route::get('/companyprofiles/list' ,'getall');
+        Route::get('/companyprofiles/detail/{branchcode}' ,'get');
+        Route::get('/companyprofiles/search' ,'search');
+        Route::put('/companyprofiles/{branchcode}' ,'update');
+        Route::post('/companyprofiles' ,'create');
+        Route::delete('/companyprofiles/{id}' ,'delete');
     }); 
 });
 

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanyProfile extends Model
 {
-    protected $table ="products";
+    protected $table ="company_profiles";
     protected $primaryKey ="branchcode";
     protected $keyType ="string";
     public $timestamps =true;
