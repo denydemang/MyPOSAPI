@@ -181,7 +181,7 @@ class UserController extends Controller
                 ]
                 ],404));
         } else {
-            $data->token = null;
+
             return new UserResource($data, "Successfully Get Specific User");
         }
 

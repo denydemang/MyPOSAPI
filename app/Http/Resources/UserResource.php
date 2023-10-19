@@ -32,7 +32,7 @@ class UserResource extends JsonResource
                 "username" => $this->resource->username,
                 "role" => $this->resource->id_role,
                 "branchcode" => $this->resource->branchcode,
-                "token" => $this->whenNotNull($this->token),
+                "token" =>$this->whenNotNull($this->token)
             ],
             "success" => $this->msg
         ];
