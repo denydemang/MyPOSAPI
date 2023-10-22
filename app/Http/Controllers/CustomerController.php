@@ -17,7 +17,7 @@ class CustomerController extends Controller
     {
         
         try {
-            $customer = Customer::where("branchcode",$branchcode)->paginate($numberperpage);
+            $customer = Customer::where("branchcode",$branchcode)->where('active', 1)->paginate($numberperpage);
             
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
@@ -73,12 +73,11 @@ class CustomerController extends Controller
         $key = $request->get("key");
         $perpage = $request->get("perpage");
 
-        $data = Customer::where("branchcode", $branchcode)->where(function($query) use ($key){
+        $data = Customer::where("branchcode", $branchcode)->where("active", 1)->where(function($query) use ($key){
             $query->where('cust_no', 'like', '%'. $key .'%');
             $query->orwhere('name', 'like', '%'. $key .'%');
             $query->orwhere('address', 'like', '%'. $key .'%');
             $query->orwhere('phone', 'like', '%'. $key .'%');
-            $query->orwhere('active', 'like', '%'. $key .'%');
         })->Paginate($perpage);
         $data->withPath(URL::to('/').'/api/customers/'.$branchcode.'/search?key='.$key.'&perpage='.$perpage);
 
@@ -88,7 +87,7 @@ class CustomerController extends Controller
     {
         $dataValidated = $request->validated();
         try {
-            $data = Customer::where("branchcode",  $branchcode)->where(function($query) use($id) {
+            $data = Customer::where("branchcode",  $branchcode)->where('active', 1)->where(function($query) use($id) {
                 $query->where("id" ,$id);
                 $query->orWhere("cust_no",$id);
             })->first();
@@ -124,7 +123,7 @@ class CustomerController extends Controller
     {
         $dataValidated = $request->validated();
         try {
-            $barcode = Customer::where("branchcode",$dataValidated['branchcode'])->where("cust_no",$dataValidated['cust_no'])->first();
+            $barcode = Customer::where("branchcode",$dataValidated['branchcode'])->where("active", 1)->where("cust_no",$dataValidated['cust_no'])->first();
 
             if(!$barcode){
                 $data = new Customer();

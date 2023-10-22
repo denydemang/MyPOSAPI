@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
@@ -64,14 +65,14 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::post('/customers' ,'create');
         Route::delete('/customers/{branchcode}/{idorcustno}' ,'delete');
     }); 
-    // Route::controller(CustomerController::class)->group(function(){
-    //     Route::get('/customers/list/{numberperpage}/{branchcode}' ,'getall');
-    //     Route::get('/customers/detail/{branchcode}/{idorcustno}' ,'get');
-    //     Route::get('/customers/{branchcode}/search' ,'search');
-    //     Route::put('/customers/{branchcode}/{idorcustno}' ,'update');
-    //     Route::post('/customers' ,'create');
-    //     Route::delete('/customers/{branchcode}/{idorcustno}' ,'delete');
-    // }); 
+    Route::controller(CategoryController::class)->group(function(){
+        Route::get('/categories/list/{numberperpage}/{branchcode}' ,'getall');
+        Route::get('/categories/detail/{id}' ,'get');
+        Route::get('/categories/{branchcode}/search' ,'search');
+        Route::put('/categories/{id}' ,'update');
+        Route::post('/categories' ,'create');
+        Route::delete('/categories/{id}' ,'delete');
+    }); 
 
     
 });

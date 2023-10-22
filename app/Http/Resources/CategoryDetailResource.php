@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CustomerDetailResource extends JsonResource
+class CategoryDetailResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -12,7 +12,6 @@ class CustomerDetailResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-
     public $msg;
     public function __construct($resource, $msg)
     {
@@ -23,13 +22,10 @@ class CustomerDetailResource extends JsonResource
     {
         return [
             "data" =>[
-                "id" => $this->resource->id,
                 "branchcode" => $this->resource->branchcode,
-                "name" => $this->resource->cust_no,
+                "id" => $this->resource->id,
                 "name" => $this->resource->name,
-                "address" => $this->resource->address,
-                "contact" => $this->resource->phone,
-                "active" => $this->resource->active,
+                "status" => $this->resource->status,
             ],
             "success" => $this->msg
         ];
