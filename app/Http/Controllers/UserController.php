@@ -25,7 +25,7 @@ class UserController extends Controller
     {
         $datavalidated = $request->validated();
 
-        if(User::where("username", $datavalidated["username"])->count() >=1 ){
+        if(User::where("username", $datavalidated["username"])->where("branchcode", $datavalidated["branchcode"])->count() >=1 ){
             throw new HttpResponseException(response([
                 "errors" => [
                     "username" => [
@@ -52,13 +52,13 @@ class UserController extends Controller
         return new UserResource($user, "Successfully Created User");
 
     }
-    public function login(UserLoginRequest $request) : UserResource
+    public function login($branchcode,UserLoginRequest $request) : UserResource
     {
         $dataValidated = $request->validated();
         date_default_timezone_set('Asia/Jakarta');
         remember_token::where("token_expired" , "<=" ,date('Y-m-d h:m:s'))->delete();
         try {
-            $user = User::where("username", $dataValidated["username"])->where('active', 1)->first();
+            $user = User::where("username", $dataValidated["username"])->where("branchcode",$branchcode)->where('active', 1)->first();
             if($user && Hash::check($dataValidated['password'], $user->password)){
                 $remember_token = new remember_token();
                 $remember_token->token = Str::uuid()->toString();
@@ -156,10 +156,10 @@ class UserController extends Controller
         }
 
     }
-    public function get($key) :UserResource
+    public function get($id) :UserResource
     {
         try {
-            $data = User::where("id" , $key)->orWhere("username", $key)->first();
+            $data = User::where("id" , $id)->first();
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -223,11 +223,11 @@ class UserController extends Controller
         }
     
     }
-    public function update($key,UserUpdateRequest $request) :JsonResponse
+    public function update($id,UserUpdateRequest $request) :JsonResponse
     {
 
         $dataValidated = $request->validated();
-        $user = User::where("id", $key)->orWhere("username", $key)->first();
+        $user = User::where("id", $id)->first();
         if (!$user){
             throw new HttpResponseException(response([
                 "errors" => [
@@ -263,10 +263,10 @@ class UserController extends Controller
         ]);
 
     }
-    public function checkcompany($key) : JsonResponse
+    public function checkcompany($id) : JsonResponse
     {
         try {
-            $user = User::where("id", $key)->orWhere("username", $key)->first();
+            $user = User::where("id", $id)->first();
             if($user) {
                 $isexistcompany = CompanyProfile::where("branchcode", $user->branchcode)->first();
 

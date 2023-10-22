@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CompanyProfileController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
@@ -23,19 +24,19 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     Route::controller(UserController::class)->group(function(){
         Route::get('/users/{id}', "get");
         Route::delete('/users/delete/{id}', 'delete');
-        Route::get('/users' ,'getall');
+        Route::get('/users' ,'getall');    
         Route::post('/users' ,'register');
         Route::put("/users/{id}", "update");
-        Route::get('/users/checkcompany/{key}',"checkcompany");
+        Route::get('/users/checkcompany/{id}',"checkcompany");
     });
 
     Route::controller(ProductController::class)->group(function(){
         Route::post('/products' ,'create');
         Route::get('/products/{branchcode}/search' ,'search');
-        Route::put('/products/{idorbarcode}' ,'update');
-        Route::delete('/products/{idorbarcode}' ,'delete');
+        Route::put('/products/{branchcode}/{idorbarcode}' ,'update');
+        Route::delete('/products/{branchcode}/{idorbarcode}' ,'delete');
         Route::get('/products/list/{numberperpage}/{branchcode}' ,'getall');
-        Route::get('/products/detail/{idorbarcode}' ,'get');
+        Route::get('/products/detail/{branchcode}/{idorbarcode}' ,'get');
     });
     
     Route::controller(SupplierController::class)->group(function(){
@@ -43,7 +44,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::get('/suppliers/detail/{id}' ,'get');
         Route::get('/suppliers/{branchcode}/search' ,'search');
         Route::put('/suppliers/{id}' ,'update');
-        Route::post('/suppliers' ,'create');
+        Route::post('/suppliers' ,'create'); 
         Route::delete('/suppliers/{id}' ,'delete');
     }); 
     Route::controller(CompanyProfileController::class)->group(function(){
@@ -54,7 +55,26 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::post('/companyprofiles' ,'create');
         Route::delete('/companyprofiles/{id}' ,'delete');
     }); 
+
+    Route::controller(CustomerController::class)->group(function(){
+        Route::get('/customers/list/{numberperpage}/{branchcode}' ,'getall');
+        Route::get('/customers/detail/{branchcode}/{idorcustno}' ,'get');
+        Route::get('/customers/{branchcode}/search' ,'search');
+        Route::put('/customers/{branchcode}/{idorcustno}' ,'update');
+        Route::post('/customers' ,'create');
+        Route::delete('/customers/{branchcode}/{idorcustno}' ,'delete');
+    }); 
+    // Route::controller(CustomerController::class)->group(function(){
+    //     Route::get('/customers/list/{numberperpage}/{branchcode}' ,'getall');
+    //     Route::get('/customers/detail/{branchcode}/{idorcustno}' ,'get');
+    //     Route::get('/customers/{branchcode}/search' ,'search');
+    //     Route::put('/customers/{branchcode}/{idorcustno}' ,'update');
+    //     Route::post('/customers' ,'create');
+    //     Route::delete('/customers/{branchcode}/{idorcustno}' ,'delete');
+    // }); 
+
+    
 });
 
 Route::delete('/users/logout', [UserController::class, 'logout']);
-Route::post('/users/login' ,[UserController::class, 'login']);
+Route::post('/users/login/{branchcode}' ,[UserController::class, 'login']);

@@ -33,11 +33,15 @@ class ProductController extends Controller
         return new ProductResourceCollection($value);
         
     }
-    public function get($key) : ProductDetailResource
+    public function get($branchcode,$key) : ProductDetailResource
     {
     
         try {
-                $data = ProductView::where("id", $key)->orWhere("barcode", $key)->first();
+                $data = ProductView::where("branchcode",$branchcode)->where(function($query) use ($key){
+
+                $query->where("id", $key);
+                $query->orWhere("barcode", $key);
+                })->first();
             } catch (\Throwable $th) {
                 throw new HttpResponseException(response([
                     "errors" => [
@@ -62,7 +66,10 @@ class ProductController extends Controller
     {
         $dataValidated = $request->validated();
         try {
-            $barcode = Product::where("barcode",$dataValidated['barcode'])->where("branchcode",$dataValidated['branchcode'])->first();
+            $barcode = Product::where("branchcode",$dataValidated['branchcode'])->where(function($query) use($dataValidated){
+                $query->where("barcode",$dataValidated['barcode']);
+                $query->orWhere("name",$dataValidated['name']);
+            })->first();
 
             if(!$barcode){
                 $data = new Product();
@@ -91,7 +98,7 @@ class ProductController extends Controller
             throw new HttpResponseException(response([
                 "errors" => [
                     "general" => [
-                        "Product With That Barcode Already Exists"
+                        "Product With That Barcode or Name Already Exists"
                     ]
                 ]
                 ],400));
@@ -114,22 +121,25 @@ class ProductController extends Controller
 
         $data = ProductView::where("branchcode", $branchcode)->where(function($query) use ($key){
             $query->where('barcode', 'like', '%'. $key .'%');
-            $query->orwhere('product_name', 'like', '%'. $key .'%');
+            $query->orwhere('name', 'like', '%'. $key .'%');
             $query->orwhere('brands', 'like', '%'. $key .'%');
             $query->orwhere('price', 'like', '%'. $key .'%');
-            $query->orwhere('category_name', 'like', '%'. $key .'%');
-            $query->orwhere('unit_name', 'like', '%'. $key .'%');
+            $query->orwhere('category', 'like', '%'. $key .'%');
+            $query->orwhere('unit', 'like', '%'. $key .'%');
         })->Paginate($perpage);
         $data->withPath(URL::to('/').'/api/products/'.$branchcode.'/search?key='.$key.'&perpage='.$perpage);
 
         return new ProductResourceCollection($data);
     }
-    public function update($id,ProductUpdateRequest $request) : JsonResponse
+    public function update($branchcode,$id,ProductUpdateRequest $request) : JsonResponse
     {
         $dataValidated = $request->validated();
 
         try {
-            $data = Product::where("id" ,$id)->orWhere("barcode",$id)->first();
+            $data = Product::where("branchcode",  $branchcode)->where(function($query) use($id) {
+                $query->where("id" ,$id);
+                $query->orWhere("barcode",$id);
+            })->first();
             if ($data){
                 $data->barcode = $dataValidated["barcode"];
                 $data->name = $dataValidated["name"];
@@ -173,13 +183,19 @@ class ProductController extends Controller
         ]);
 
     }
-    public function delete($key) :JsonResponse
+    public function delete($branchcode,$key) :JsonResponse
     {
 
         try {
-            $data = Product::where("id", $key)->orWhere("barcode", $key)->first();
+            $data = Product::where("branchcode",$branchcode)->where(function($query) use ($key){
+                $query->where("id", $key);
+                $query->orWhere("barcode", $key);
+            })->first();
             if ($data){
-                Product::where("id", $key)->orWhere("barcode", $key)->delete();
+                Product::where("branchcode",$branchcode)->where(function($query) use ($key){
+                    $query->where("id", $key);
+                    $query->orWhere("barcode", $key);
+                })->delete();
             }
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
