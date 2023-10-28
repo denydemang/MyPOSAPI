@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
@@ -74,8 +75,18 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::delete('/categories/{id}' ,'delete');
     }); 
 
+    Route::controller(PurchaseController::class)->group(function(){
+        Route::get('/purchases/list/{branchcode}' ,'getall');
+        Route::get('/purchases/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
+        Route::get('/purchases/{branchcode}/search' ,'search');
+        Route::post('/purchases' ,'create');
+        Route::put('/purchases/{branchcode}/{idpurchaseortrans_no}' ,'update');
+        Route::delete('/purchases/{branchcode}/{id}' ,'delete');
+    }); 
+
     
-});
+}); 
+
 
 Route::delete('/users/logout', [UserController::class, 'logout']);
 Route::post('/users/login/{branchcode}' ,[UserController::class, 'login']);
