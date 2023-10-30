@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::middleware(ApiAuthMiddleware::class)->group(function(){
-
+    
     Route::controller(UserController::class)->group(function(){
         Route::get('/users/{id}', "get");
         Route::delete('/users/delete/{id}', 'delete');
@@ -31,7 +32,6 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::put("/users/{id}", "update");
         Route::get('/users/checkcompany/{id}',"checkcompany");
     });
-
     Route::controller(ProductController::class)->group(function(){
         Route::post('/products' ,'create');
         Route::get('/products/{branchcode}/search' ,'search');
@@ -40,7 +40,6 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::get('/products/list/{numberperpage}/{branchcode}' ,'getall');
         Route::get('/products/detail/{branchcode}/{idorbarcode}' ,'get');
     });
-    
     Route::controller(SupplierController::class)->group(function(){
         Route::get('/suppliers/list/{numberperpage}/{branchcode}' ,'getall');
         Route::get('/suppliers/detail/{id}' ,'get');
@@ -82,11 +81,23 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::post('/purchases' ,'create');
         Route::put('/purchases/{branchcode}/{idpurchaseortrans_no}' ,'update');
         Route::delete('/purchases/{branchcode}/{id}' ,'delete');
+        Route::patch('/purchases/{branchcode}/{id}' ,'approve');
     }); 
 
     
 }); 
 
 
+Route::controller(SalesController::class)->group(function(){
+    Route::get('/sales/list/{branchcode}' ,'getall');
+    Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
+    // Route::get('/sales/{branchcode}/search' ,'search');
+    // Route::post('/sales' ,'create');
+    // Route::put('/sales/{branchcode}/{idpurchaseortrans_no}' ,'update');
+    // Route::delete('/sales/{branchcode}/{id}' ,'delete');
+    // Route::patch('/sales/{branchcode}/{id}' ,'approve');
+}); 
+
+    
 Route::delete('/users/logout', [UserController::class, 'logout']);
 Route::post('/users/login/{branchcode}' ,[UserController::class, 'login']);

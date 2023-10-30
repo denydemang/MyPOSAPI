@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Purchase extends Model
+class Sales extends Model
 {
-    protected $table ="purchases";
+    protected $table ="sales";
     protected $primaryKey ="id";
     protected $keyType ="int";
     public $timestamps =true;
@@ -17,16 +17,16 @@ class Purchase extends Model
         "branchcode",
         "trans_no",
         "trans_date",
+        "id_cust",
         "id_user",
-        "id_supplier",
         "total",
-        "dicount",
-        "other_fee",
+        "discount",
         "ppn",
+        "notes",
         "grand_total",
-        "payment_term",
+        "paid",
+        "change_amount",
         "is_approve",
-        "total",
         "is_credit",
     ];
 }

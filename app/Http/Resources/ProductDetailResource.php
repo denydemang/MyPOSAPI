@@ -29,6 +29,7 @@ class ProductDetailResource extends JsonResource
                 "id_category" => $this->id_category,
                 "category" => $this->category,
                 "unit" => $this->unit,
+                "remaining_stock" =>$this->remaining_stock
             ],
             "success" => "Successfully Specific Product"
         ];

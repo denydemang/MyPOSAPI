@@ -44,8 +44,8 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name', DB::raw('SUM(sub_total) as grand_total'),'discount', 'other_fee', 'ppn',
-                'payment_term', 'is_approve','is_credit', 'total_purchase'
+                'id_supplier' ,'supplier_name','total', DB::raw('count(trans_no) as total_product'),'discount', 'other_fee', 'ppn',
+                'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
                 ->when($iscredit, function($query, string $iscredit){
@@ -80,8 +80,8 @@ class PurchaseController extends Controller
             $purchase = PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name','discount', 'other_fee', 'ppn',
-                'payment_term', 'is_approve','is_credit', 'total_purchase'
+                'id_supplier' ,'supplier_name','total','discount', 'other_fee', 'ppn',
+                'payment_term', 'is_approve','is_credit', 'grand_total'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
                     $query->where("trans_no", $id);
@@ -112,7 +112,7 @@ class PurchaseController extends Controller
                 "purchase" => $purchase,
                 "item" =>$item
             ],
-            'grandtotal' =>$item->sum('sub_total'),
+            'total_product' =>$item->count('trans_no'),
             'success' =>'Successfully Get Specific Purchase'
         ])->setStatusCode(200);
     }
@@ -137,8 +137,8 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name', DB::raw('SUM(sub_total) as grand_total'),'discount', 'other_fee', 'ppn',
-                'payment_term', 'is_approve','is_credit', 'total_purchase'
+                'id_supplier' ,'supplier_name', 'total',DB::raw('count(trans_no) as total_product'),'discount', 'other_fee', 'ppn',
+                'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
                 ->when($iscredit, function($query, string $iscredit){
@@ -187,11 +187,12 @@ class PurchaseController extends Controller
                 $purchase->trans_date = $dataValidated['trans_date'];
                 $purchase->id_user = $dataValidated['id_user'];
                 $purchase->id_supplier = $dataValidated['id_supplier'];
+                $purchase->total = $dataValidated['total'];
                 $purchase->discount = !empty($dataValidated['discount'])? $dataValidated['discount'] : 0;
                 $purchase->other_fee = !empty($dataValidated['other_fee']) ? $dataValidated['other_fee'] : 0;
                 $purchase->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
                 $purchase->payment_term = !empty($dataValidated['payment_term']) ? $dataValidated['payment_term'] : null;
-                $purchase->total = $dataValidated['total'];
+                $purchase->grand_total = $dataValidated['grand_total'];
                 $purchase->is_credit = $dataValidated['is_credit'];
                 $purchase->save();
 
@@ -242,10 +243,11 @@ class PurchaseController extends Controller
                     $purchase->trans_date = $dataValidated['trans_date'];
                     $purchase->id_user = $dataValidated['id_user'];
                     $purchase->id_supplier = $dataValidated['id_supplier'];
+                    $purchase->total = $dataValidated['total'];
                     $purchase->discount = $dataValidated['discount'];
                     $purchase->other_fee = $dataValidated['other_fee'];
                     $purchase->ppn = $dataValidated['ppn'];
-                    $purchase->total = $dataValidated['total'];
+                    $purchase->grand_total = $dataValidated['grand_total'];
                     $purchase->payment_term = $dataValidated['payment_term'];
                     $purchase->is_credit = $dataValidated['is_credit'];
                     $purchase->update();
@@ -323,5 +325,44 @@ class PurchaseController extends Controller
             "data" => $purchase,
             "success" => "Successfully Deleted Purchase Transaction"
         ]);
+    }
+    public function approve($branchcode, $key){
+
+        try {
+            $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", $key);
+                $query->orWhere("id", $key);
+            })->first();
+            if($purchase){
+                $purchase->is_approve = 1;
+                $purchase->update();
+            }
+
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if (!$purchase){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],500));
+        }
+
+        return response()->json([
+            'data' => [
+                'trans_no' => $purchase->trans_no,
+                'is_approve' => $purchase->is_approve
+            ],
+            "success" => "successfully Approved Transaction"
+            ]);
     }
 }
