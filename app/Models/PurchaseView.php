@@ -9,3 +9,4 @@ class PurchaseView extends Model
 {
     protected $table = "purchases_view";
 }
+    

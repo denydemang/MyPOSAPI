@@ -2,9 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SalesCreateRequest;
 use App\Http\Resources\SalesResourceCollection;
+use App\Models\COGS;
+use App\Models\DetailSales;
+use App\Models\ProductView;
+use App\Models\Sales;
 use App\Models\SalesView;
+use App\Models\Stock;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -151,65 +158,82 @@ class SalesController extends Controller
         }
         return new SalesResourceCollection($sales, "Successfully Get Sales By Search");
     }
+    public function create(SalesCreateRequest $request) :JsonResponse
+    {
+        $Totalcogs =0;
+        $dataValidated = $request->validated();
+        $dateNow = date("Y-m-d", strtotime(Carbon::now()));
+        try {
+            DB::beginTransaction();
+                foreach ($dataValidated['items'] as $item) {
+                    $checkstock = new StockController();
+                    $Totalcogs += $checkstock->stockout(intval($item['id_product']),intval($item['qty']));   
+                };
+                $cogs = new COGS();
+                $cogs->branchcode =$dataValidated['branchcode'];
+                $cogs->branchcode =$dataValidated['branchcode'];
 
-    // public function create(PurchaseCreateRequest $request) : JsonResponse{
-    //     $dataValidated = $request->validated();
-    //     $dateNow = date("Y-m-d", strtotime(Carbon::now()));
-    //     try {
-    //         DB::beginTransaction();
-    //             $getTransNo = Purchase::select('trans_no')->where("branchcode", $dataValidated["branchcode"])->where("trans_no","like", "PRC-{$dateNow}-%")->orderBy("trans_no", "desc")->first();
-    //             if ($getTransNo){
+                $getTransNo = Sales::select('trans_no')->where("branchcode", $dataValidated["branchcode"])->where("trans_no","like", "SLS-{$dateNow}-%")->orderBy("trans_no", "desc")->first();
+                if ($getTransNo){
 
-    //                 $getLockMax = Purchase::select('trans_no')->where("branchcode", $dataValidated["branchcode"])->where("trans_no", ">=", $getTransNo->trans_no)->lockForUpdate()->orderBy("trans_no", "desc")->first();
-    //                 $getLastDigit = intval(str_replace("PRC-{$dateNow}-","",$getLockMax->trans_no));
-    //                 $newCode = "PRC-{$dateNow}-". sprintf("%03d",$getLastDigit + 1);
-    //             } else {
-    //                 $newCode = "PRC-{$dateNow}-001";
-    //             }
+                    $getLockMax = Sales::select('trans_no')->where("branchcode", $dataValidated["branchcode"])->where("trans_no", ">=", $getTransNo->trans_no)->lockForUpdate()->orderBy("trans_no", "desc")->first();
+                    $getLastDigit = intval(str_replace("SLS-{$dateNow}-","",$getLockMax->trans_no));
+                    $newCode = "SLS-{$dateNow}-". sprintf("%03d",$getLastDigit + 1);
+                } else {
+                    $newCode = "SLS-{$dateNow}-001";
+                }
+                $sales = new Sales();
+                $sales->branchcode = $dataValidated['branchcode'];
+                $sales->trans_no = $newCode;
+                $sales->trans_date = $dataValidated['trans_date'];
+                $sales->id_cust = $dataValidated['id_cust'];
+                $sales->id_user = $dataValidated['id_user'];
+                $sales->total = $dataValidated['total'];
+                $sales->discount = !empty($dataValidated['discount'])? $dataValidated['discount'] : 0;
+                $sales->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
+                $sales->notes = !empty($dataValidated['notes']) ? $dataValidated['notes'] : null;
+                $sales->grand_total = $dataValidated['grand_total'];
+                $sales->paid = $dataValidated['paid'];
+                $sales->change_amount = $dataValidated['is_credit'];
+                $sales->is_credit = $dataValidated['is_credit'];
+                $sales->save();
 
-    //             $purchase = new Purchase();
-    //             $purchase->branchcode = $dataValidated['branchcode'];
-    //             $purchase->trans_no = $newCode;
-    //             $purchase->trans_date = $dataValidated['trans_date'];
-    //             $purchase->id_user = $dataValidated['id_user'];
-    //             $purchase->id_supplier = $dataValidated['id_supplier'];
-    //             $purchase->discount = !empty($dataValidated['discount'])? $dataValidated['discount'] : 0;
-    //             $purchase->other_fee = !empty($dataValidated['other_fee']) ? $dataValidated['other_fee'] : 0;
-    //             $purchase->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
-    //             $purchase->payment_term = !empty($dataValidated['payment_term']) ? $dataValidated['payment_term'] : null;
-    //             $purchase->total = $dataValidated['total'];
-    //             $purchase->is_credit = $dataValidated['is_credit'];
-    //             $purchase->save();
-
-    //             $items= collect($dataValidated["items"])->transform(function($item) use($purchase){
-    //                 return ['id_purchases' => intval($purchase->id)]+ $item;
-    //             });
-    //             DetailPurchase::insert($items->toArray());
-    //         DB::commit();
-            
-    //     } catch (\Throwable $th) {
-    //         DB::rollBack();
-    //         throw new HttpResponseException(response([
-    //             "errors" => [
-    //                 "general" => [
-    //                     $th->getMessage()
-    //                 ]
-    //             ]
-    //             ],500));
-    //     }
+                $items= collect($dataValidated["items"])->transform(function($item) use($sales){
+                    return ['id_sales' => intval($sales->id)]+ $item;
+                });
+                DetailSales::insert($items->toArray());  
+                $cogs = new COGS();
+                $cogs->branchcode =$dataValidated['branchcode'];
+                $cogs->id_sales =$sales->id;
+                $cogs->total_cogs = $Totalcogs;
+                $cogs->save();
 
 
-    //     return response()->json(
-    //         [
-    //             "data" => [
-    //                 "purchase" => $purchase,
-    //                 "items" => $items
-    //             ],
-    //             "success" => "Successfully Saved Purchase Transaction"
-    //         ]
-    //     )->setStatusCode(200);
+            DB::commit();
 
-    // }
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+
+        return response()->json(
+            [
+                "data" => [
+                    "sales" => $sales,
+                    "items" => $items,
+                    "cogs" => $Totalcogs
+                ],
+                "success" => "Successfully Saved Sales Transaction"
+            ]
+        );
+    }
+
     // public function update($branchcode,$key,PurchaseUpdateRequest $request) :JsonResponse
     // {
     //     $dataValidated = $request->validated();

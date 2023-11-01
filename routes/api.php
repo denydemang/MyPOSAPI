@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
@@ -87,13 +88,22 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     
 }); 
 
-
-Route::controller(SalesController::class)->group(function(){
-    Route::get('/sales/list/{branchcode}' ,'getall');
-    Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
+Route::controller(StockController::class)->group(function(){
+    Route::get('/stocks/{idproduct}/{qty}', 'stockout');
+    // Route::get('/sales/list/{branchcode}' ,'getall');
+    // Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
     // Route::get('/sales/{branchcode}/search' ,'search');
     // Route::post('/sales' ,'create');
     // Route::put('/sales/{branchcode}/{idpurchaseortrans_no}' ,'update');
+    // Route::delete('/sales/{branchcode}/{id}' ,'delete');
+    // Route::patch('/sales/{branchcode}/{id}' ,'approve');
+}); 
+Route::controller(SalesController::class)->group(function(){
+    Route::get('/sales/list/{branchcode}' ,'getall');
+    Route::get('/sales/detail/{branchcode}/{idsaleseortrans_no}' ,'get');
+    Route::get('/sales/{branchcode}/search' ,'search');
+    Route::post('/sales' ,'create');
+    Route::put('/sales/{branchcode}/{idsalesortrans_no}' ,'update');
     // Route::delete('/sales/{branchcode}/{id}' ,'delete');
     // Route::patch('/sales/{branchcode}/{id}' ,'approve');
 }); 

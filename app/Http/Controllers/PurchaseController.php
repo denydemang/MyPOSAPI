@@ -297,7 +297,7 @@ class PurchaseController extends Controller
                 $query->orWhere("id", $key);
             })->first();
 
-            if($purchase){
+            if($purchase){  
                 Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
                     $query->where("trans_no", $key);
                     $query->orWhere("id", $key);
