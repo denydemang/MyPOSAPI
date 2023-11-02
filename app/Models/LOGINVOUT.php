@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class COGS extends Model
+class LOGINVOUT extends Model
 {
-    protected $table ="cogs";
+    protected $table ="log_inv_out";
     protected $primaryKey ="id";
     protected $keyType ="int";
     public $timestamps =true;
@@ -15,7 +15,11 @@ class COGS extends Model
 
     protected $fillable = [
         "branchcode",
-        "id_sales",
-        "total_cogs",
+        "ref_no",
+        "date",
+        "id_product",
+        "qty",
+        "price",
+        "id_stock",
     ];
 }

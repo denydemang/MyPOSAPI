@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LOGINVOUT;
 use App\Models\ProductView;
 use App\Models\Stock;
 use Exception;
@@ -9,9 +10,9 @@ use Illuminate\Http\Request;
 
 class StockController extends Controller
 {
-    public function stockout(int $idproduct, int $qty):int{
+    public function stockout(int $idproduct, int $qty, string $transno, string $branchcode, string $date):void{
 
-        $Totalcogs = 0; //hpp atau cost of good sold
+        // $Totalcogs = 0; //hpp atau cost of good sold
         $remaining_stock = ProductView::where('id', $idproduct)->first();
 
         if (!$remaining_stock){
@@ -34,22 +35,40 @@ class StockController extends Controller
                     if($qty >= $stock_available){
     
                         $cogs = intval((intval($stock_available) * intval($stock->cogs)));
-                        $Totalcogs+= $cogs;
+                        // $Totalcogs+= $cogs;
                         $stock->used_stock += $stock_available;
                         $stock->update();
+                        $loginvout = new LOGINVOUT();
+                        $loginvout->branchcode = $branchcode;
+                        $loginvout->id_product = $idproduct;
+                        $loginvout->ref_no = $transno;
+                        $loginvout->date = $date;
+                        $loginvout->qty = $stock_available;
+                        $loginvout->price = $stock->cogs;
+                        $loginvout->id_stock = $stock->id;
+                        $loginvout->save();
                         $qty-=$stock_available;
                     } else {
                         $cogs = intval((intval($qty) * intval($stock->cogs)));
-                        $Totalcogs+= $cogs;
+                        // $Totalcogs+= $cogs;
                         $stock->used_stock += $qty;
                         $stock->update();
+                        $loginvout = new LOGINVOUT();
+                        $loginvout->branchcode = $branchcode;
+                        $loginvout->id_product = $idproduct;
+                        $loginvout->ref_no = $transno;
+                        $loginvout->date = $date;
+                        $loginvout->qty = $qty;
+                        $loginvout->price = $stock->cogs;
+                        $loginvout->id_stock = $stock->id;
+                        $loginvout->save();
                         $qty-=$qty;
                     }
             }
         //     }
         //     return $Totalcogs;
         }
-        return $Totalcogs;
+        // return $Totalcogs;
     }
 
     public function stockin(int $idproduct, int $qty):int{

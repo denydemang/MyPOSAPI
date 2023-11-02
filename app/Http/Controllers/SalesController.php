@@ -6,6 +6,7 @@ use App\Http\Requests\SalesCreateRequest;
 use App\Http\Resources\SalesResourceCollection;
 use App\Models\COGS;
 use App\Models\DetailSales;
+use App\Models\LOGINVOUT;
 use App\Models\ProductView;
 use App\Models\Sales;
 use App\Models\SalesView;
@@ -32,6 +33,7 @@ class SalesController extends Controller
         $firstdate =  date("Y-m-d",strtotime(Carbon::now()->firstOfMonth()));
         $lastdate =  date("Y-m-d",strtotime(Carbon::now()->lastOfMonth()));
         $iscredit = $request->get('iscredit'); 
+        $isapprove = $request->get('isapprove'); 
         $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "trans_date";
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
         $perpage = (null != $request->get('perpage'))? $request->get('perpage') : 10;
@@ -48,6 +50,9 @@ class SalesController extends Controller
                 ->whereBetween("trans_date", [$startdate,$enddate])
                 ->when($iscredit, function($query, string $iscredit){
                     $query->where('is_sales_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
+                })
+                ->when($isapprove, function($query, string $isapprove){
+                    $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->groupBy('trans_no')
                 ->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)
@@ -118,6 +123,7 @@ class SalesController extends Controller
         $columlist = Schema::getColumnListing($tableName);
 
         $iscredit = $request->get('iscredit'); 
+        $isapprove = $request->get('isapprove'); 
         $firstdate =  date("Y-m-d",strtotime(Carbon::now()->firstOfMonth()));
         $lastdate =  date("Y-m-d",strtotime(Carbon::now()->lastOfMonth()));
         $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "trans_date";
@@ -137,6 +143,9 @@ class SalesController extends Controller
                 ->whereBetween("trans_date", [$startdate,$enddate])
                 ->when($iscredit, function($query, string $iscredit){
                     $query->where('is_sales_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
+                })
+                ->when($isapprove, function($query, string $isapprove){
+                    $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->where(function($query) use ($key){
                     $query->Where('trans_no', 'like', "%{$key}%");
@@ -160,18 +169,10 @@ class SalesController extends Controller
     }
     public function create(SalesCreateRequest $request) :JsonResponse
     {
-        $Totalcogs =0;
         $dataValidated = $request->validated();
         $dateNow = date("Y-m-d", strtotime(Carbon::now()));
         try {
             DB::beginTransaction();
-                foreach ($dataValidated['items'] as $item) {
-                    $checkstock = new StockController();
-                    $Totalcogs += $checkstock->stockout(intval($item['id_product']),intval($item['qty']));   
-                };
-                $cogs = new COGS();
-                $cogs->branchcode =$dataValidated['branchcode'];
-                $cogs->branchcode =$dataValidated['branchcode'];
 
                 $getTransNo = Sales::select('trans_no')->where("branchcode", $dataValidated["branchcode"])->where("trans_no","like", "SLS-{$dateNow}-%")->orderBy("trans_no", "desc")->first();
                 if ($getTransNo){
@@ -202,13 +203,13 @@ class SalesController extends Controller
                     return ['id_sales' => intval($sales->id)]+ $item;
                 });
                 DetailSales::insert($items->toArray());  
-                $cogs = new COGS();
-                $cogs->branchcode =$dataValidated['branchcode'];
-                $cogs->id_sales =$sales->id;
-                $cogs->total_cogs = $Totalcogs;
-                $cogs->save();
 
-
+                foreach ($dataValidated['items'] as $item) {
+                    $checkstock = new StockController();
+                    $checkstock->stockout(intval($item['id_product']),intval($item['qty']), $sales->trans_no,$sales->branchcode, $sales->trans_date);   
+                };
+                $Cogs = LOGINVOUT::selectRaw("qty * price as cogs")->where("branchcode", $sales->branchcode)->where('ref_no', $sales->trans_no)->get();
+                $totalCogs = $Cogs->sum('cogs');
             DB::commit();
 
         } catch (\Throwable $th) {
@@ -227,7 +228,7 @@ class SalesController extends Controller
                 "data" => [
                     "sales" => $sales,
                     "items" => $items,
-                    "cogs" => $Totalcogs
+                    "cogs" => $totalCogs
                 ],
                 "success" => "Successfully Saved Sales Transaction"
             ]
