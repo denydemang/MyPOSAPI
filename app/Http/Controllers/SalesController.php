@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SalesCreateRequest;
+use App\Http\Requests\SalesUpdateRequest;
 use App\Http\Resources\SalesResourceCollection;
 use App\Models\COGS;
 use App\Models\DetailSales;
@@ -165,7 +166,7 @@ class SalesController extends Controller
                 ]
                 ],500));
         }
-        return new SalesResourceCollection($sales, "Successfully Get Sales By Search");
+        return new SalesResourceCollection($sales, "Successfully Get Sales Transaction By Search");
     }
     public function create(SalesCreateRequest $request) :JsonResponse
     {
@@ -222,7 +223,15 @@ class SalesController extends Controller
                 ]
                 ],500));
         }
-
+        if (!$sales){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],500));
+        }
         return response()->json(
             [
                 "data" => [
@@ -235,147 +244,159 @@ class SalesController extends Controller
         );
     }
 
-    // public function update($branchcode,$key,PurchaseUpdateRequest $request) :JsonResponse
-    // {
-    //     $dataValidated = $request->validated();
-    //     try {
-    //         $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-    //             $query->where("trans_no", strval($key));
-    //             $query->orWhere("id", $key);
-    //         })->first();
-    //         if($purchase){
-    //             DB::beginTransaction();
-                    
-    //                 $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-    //                     $query->where("trans_no", $key);
-    //                     $query->orWhere("id", $key);
-    //                 })->lockForUpdate()->first();
-    //                 $purchase->trans_date = $dataValidated['trans_date'];
-    //                 $purchase->id_user = $dataValidated['id_user'];
-    //                 $purchase->id_supplier = $dataValidated['id_supplier'];
-    //                 $purchase->discount = $dataValidated['discount'];
-    //                 $purchase->other_fee = $dataValidated['other_fee'];
-    //                 $purchase->ppn = $dataValidated['ppn'];
-    //                 $purchase->total = $dataValidated['total'];
-    //                 $purchase->payment_term = $dataValidated['payment_term'];
-    //                 $purchase->is_credit = $dataValidated['is_credit'];
-    //                 $purchase->update();
-    //                 DetailPurchase::where("id_purchases" ,$purchase->id)
-    //                 ->lockForUpdate()->delete();
-    //                 $items= collect($dataValidated["items"])->transform(function($item) use($purchase){
-    //                     return ['id_purchases' => intval($purchase->id)]+ $item;
-    //                 });
-    //                 DetailPurchase::insert($items->toArray());
-    //             DB::commit();
-    //         }
-    //     } catch (\Throwable $th) {
-    //         DB::rollBack();
-    //         throw new HttpResponseException(response([
-    //             "errors" => [
-    //                 "general" => [
-    //                     $th->getMessage()
-    //                 ]
-    //             ]
-    //             ],500));
+    public function update($branchcode,$key,SalesUpdateRequest $request) :JsonResponse
+    {
+        $dataValidated = $request->validated();
 
-    //     }
-    //     if (!$purchase){
-    //         throw new HttpResponseException(response([
-    //             "errors" => [
-    //                 "general" => [
-    //                     "ID or No_Trans Is Not Found"
-    //                 ]
-    //             ]
-    //         ],500));
-    //     }
+        try {
+            $sales = Sales::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", strval($key));
+                $query->orWhere("id", $key);
+            })->first();
 
-    //     return response()->json([
-    //         "data" =>[
-    //             "purchase" => $purchase,
-    //             "items" => $items
-    //         ],
-    //         "success" => "Successfully Updated Purchase Transaction"
-    //     ])->setStatusCode(200);
-    // }
+            if($sales){
+                DB::beginTransaction();
+                $sales = Sales::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", $key);
+                $query->orWhere("id", $key);})->lockForUpdate()->first();
+                
+                $sales->trans_date = $dataValidated['trans_date'];
+                $sales->id_cust = $dataValidated['id_cust'];
+                $sales->id_user = $dataValidated['id_user'];
+                $sales->discount = !empty($dataValidated['discount'])? $dataValidated['discount'] : 0;
+                $sales->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
+                $sales->notes = !empty($dataValidated['notes']) ? $dataValidated['notes'] : null;
+                $sales->grand_total = $dataValidated['grand_total'];
+                $sales->paid = $dataValidated['paid'];
+                $sales->change_amount = $dataValidated['change_amount'];
+                $sales->is_credit = $dataValidated['is_credit'];
+                $sales->update();
+                DetailSales::where("id_sales" ,$sales->id)->delete();
+                $items= collect($dataValidated["items"])->transform(function($item) use($sales){
+                    return ['id_sales' => intval($sales->id)]+ $item;
+                });
+                DetailSales::insert($items->toArray());
+                foreach ($dataValidated['items'] as $item) {
+                    $checkstock = new StockController();
+                    $checkstock->updatestockout(intval($item['id_product']),intval($item['qty']), $sales->trans_no,$sales->branchcode, $sales->trans_date);   
+                };
+                $Cogs = LOGINVOUT::selectRaw("qty * price as cogs")->where("branchcode", $sales->branchcode)->where('ref_no', $sales->trans_no)->get();
+                $totalCogs = $Cogs->sum('cogs');
 
-    // public function delete($branchcode, $key): JsonResponse
-    // {
-    //     try {
-    //         $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-    //             $query->where("trans_no", $key);
-    //             $query->orWhere("id", $key);
-    //         })->first();
+                DB::commit();
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::rollBack();
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if (!$sales){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],500));
+        }
 
-    //         if($purchase){
-    //             Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-    //                 $query->where("trans_no", $key);
-    //                 $query->orWhere("id", $key);
-    //             })->delete();
-    //         }
-    //     } catch (\Throwable $th) {
-    //         throw new HttpResponseException(response([
-    //             "errors" => [
-    //                 "general" => [
-    //                     $th->getMessage()
-    //                 ]
-    //             ]
-    //             ],500));
-    //     }
-    //     if(!$purchase){
-    //         throw new HttpResponseException(response([
-    //             "errors" => [
-    //                 "general" => [
-    //                     "ID or No_Trans Is Not Found"
-    //                 ]
-    //             ]
-    //         ],500));
-    //     }
-    //     return response()->json([
-    //         "data" => $purchase,
-    //         "success" => "Successfully Deleted Purchase Transaction"
-    //     ]);
-    // }
-    // public function approve($branchcode, $key){
+        return response()->json([
+            "data" =>[
+                "sales" => $sales,
+                "items" => $items,
+                "cogs" => $totalCogs,
+            ],
+            "success" => "Successfully Updated Sales Transaction"
+        ])->setStatusCode(200);
+        
+    }
 
-    //     try {
-    //         $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-    //             $query->where("trans_no", $key);
-    //             $query->orWhere("id", $key);
-    //         })->first();
-    //         if($purchase){
-    //             Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-    //                 $query->where("trans_no", $key);
-    //                 $query->orWhere("id", $key);
-    //             })->update([
-    //                 "is_approve" => 1
-    //             ]);
-    //         }
+    public function delete($branchcode, $key): JsonResponse
+    {
+        try {
+            $sales = Sales::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", $key);
+                $query->orWhere("id", $key);
+            })->first();
 
-    //     } catch (\Throwable $th) {
-    //         throw new HttpResponseException(response([
-    //             "errors" => [
-    //                 "general" => [
-    //                     $th->getMessage()
-    //                 ]
-    //             ]
-    //             ],500));
-    //     }
-    //     if (!$purchase){
-    //         throw new HttpResponseException(response([
-    //             "errors" => [
-    //                 "general" => [
-    //                     "ID or No_Trans Is Not Found"
-    //                 ]
-    //             ]
-    //         ],500));
-    //     }
+            if($sales){
+                DB::beginTransaction();
+                Sales::where("branchcode", $branchcode)->where(function($query) use($key){
+                    $query->where("trans_no", $key);
+                    $query->orWhere("id", $key);
+                })->delete();
+                $stock = new StockController();
+                $stock->revertstockout($sales->trans_no, $branchcode);
 
-    //     return response()->json([
-    //         'data' => [
-    //             'trans_no' => $purchase->trans_no,
-    //             'is_approve' => $purchase->is_approve
-    //         ],
-    //         "success" => "successfully Approved Transaction"
-    //         ]);
-    // }
+                DB::commit();
+            }
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if(!$sales){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],404));
+        }
+        return response()->json([
+            "data" => $sales,
+            "success" => "Successfully Deleted Sales Transaction"
+        ]);
+    }
+    public function approve($branchcode, $key){
+
+        try {
+            $sales = Sales::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", $key);
+                $query->orWhere("id", $key);
+            })->first();
+            if($sales){
+                $sales->is_approve =1;
+                $sales->update();
+                $Cogs = LOGINVOUT::selectRaw("qty * price as cogs")->where("branchcode", $sales->branchcode)->where('ref_no', $sales->trans_no)->get();
+                $totalCogs = $Cogs->sum('cogs');
+            }
+
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if (!$sales){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],404));
+        }
+
+        return response()->json([
+            'data' => $sales,
+            "cogs" => $totalCogs,
+            "success" => "Successfully Approved Transaction"
+            ]);
+    }
 }

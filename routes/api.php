@@ -104,8 +104,8 @@ Route::controller(SalesController::class)->group(function(){
     Route::get('/sales/{branchcode}/search' ,'search');
     Route::post('/sales' ,'create');
     Route::put('/sales/{branchcode}/{idsalesortrans_no}' ,'update');
-    // Route::delete('/sales/{branchcode}/{id}' ,'delete');
-    // Route::patch('/sales/{branchcode}/{id}' ,'approve');
+    Route::delete('/sales/{branchcode}/{idsalesortrans_no}' ,'delete');
+    Route::patch('/sales/{branchcode}/{idsalesortrans_no}' ,'approve');
 }); 
 
     

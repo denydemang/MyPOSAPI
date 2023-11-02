@@ -1,6 +1,9 @@
 <?php
 
-// Data yang akan dikirimkan ke API
+$branchcode = "int";
+$key = "SLS-2023-11-02-001";
+
+// Data yang akan diupdate
 $data = [
     'branchcode' => 'int',
     'trans_date' => '2023-10-31',
@@ -18,7 +21,7 @@ $data = [
         [
             "id_product" => "11",
             "id_unit" => "pcs",
-            "qty" => 1000,
+            "qty" => 2000,
             "price" => 9999,
             "discount" => 0,
             "sub_total" => 900000,
@@ -27,39 +30,40 @@ $data = [
         [
             "id_product" => "7",
             "id_unit" => "pcs",
-            "qty" => 1000,
+            "qty" => 2000,
             "price" => 34141,
             "discount" => 0,
             "sub_total" => 9999,
             
-        ],
+        ]
     ],
 ];
 
-// URL endpoint API
-$apiUrl = 'http://127.0.0.1:8000/api/sales';
+// Mengirim permintaan PUT ke API
+$api_url = "http://127.0.0.1:8000/api/sales/{$branchcode}/{$key}";
+$ch = curl_init($api_url);
 
-// Inisialisasi cURL
-$ch = curl_init($apiUrl);
-
-// Set opsi cURL
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_POST, 1);
+// Mengatur opsi permintaan
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/json',
+    // Tambahkan header lain jika diperlukan
 ]);
 
-// Eksekusi cURL dan dapatkan respons
+// Melakukan eksekusi permintaan
 $response = curl_exec($ch);
 
-// Periksa apakah ada kesalahan
-if (curl_errno($ch)) {
-    echo 'Curl error: ' . curl_error($ch);
-}
+echo $response;
+// Menangani respon
+// $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+// if ($http_code == 200) {
+//     echo "Data berhasil diperbarui.";
+// } else {
+//     echo "Gagal memperbarui data. Kode HTTP: {$http_code}\n";
+//     echo "Respon: {$response}\n";
+// }
 
-// Tutup koneksi cURL
+// Menutup koneksi cURL
 curl_close($ch);
-
-// Tampilkan respons dari API
-echo json_encode(json_decode($response), JSON_PRETTY_PRINT);

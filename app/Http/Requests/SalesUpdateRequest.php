@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class SalesUpdateRequest extends FormRequest
 {
@@ -24,7 +26,6 @@ class SalesUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            "branchcode" => "required",
             "trans_date" => "required",
             "id_cust" => "required",
             "id_user" => "required",

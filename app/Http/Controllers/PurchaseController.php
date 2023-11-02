@@ -277,7 +277,7 @@ class PurchaseController extends Controller
                         "ID or No_Trans Is Not Found"
                     ]
                 ]
-            ],500));
+            ],404));
         }
 
         return response()->json([
@@ -319,7 +319,7 @@ class PurchaseController extends Controller
                         "ID or No_Trans Is Not Found"
                     ]
                 ]
-            ],500));
+            ],404));
         }
         return response()->json([
             "data" => $purchase,
@@ -354,7 +354,7 @@ class PurchaseController extends Controller
                         "ID or No_Trans Is Not Found"
                     ]
                 ]
-            ],500));
+            ],404));
         }
 
         return response()->json([
