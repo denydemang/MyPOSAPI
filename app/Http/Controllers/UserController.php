@@ -126,6 +126,7 @@ class UserController extends Controller
     public function getall(Request $request) :JsonResponse
     {
         $branchcode = $request->input('branchcode');
+        $isactive = $request->input('isactive');
 
         if(!$branchcode){
             throw new HttpResponseException(response([
@@ -138,7 +139,9 @@ class UserController extends Controller
         } else {
 
             try {
-                $data = UserView::where('branchcode', $branchcode)->where("active" , 1)->get()->makeHidden(["token","password","created_at","updated_at"]);
+                $data = UserView::where('branchcode', $branchcode)->when($isactive, function($query, string $isactive){
+                    $query->where('active', filter_var($isactive, FILTER_VALIDATE_BOOLEAN));
+                })->get()->makeHidden(["token","password","created_at","updated_at"]);
                 $data = [
                     "data" => $data->collect(),
                     "success" => "Successfully Get Data"
@@ -260,7 +263,7 @@ class UserController extends Controller
                 "username" => $user->username,
             ],
             "success" => "User Successfully Updated"
-        ]);
+        ])->setStatusCode(200);
 
     }
     public function checkcompany($id) : JsonResponse
@@ -302,8 +305,71 @@ class UserController extends Controller
                 ]
                 ],404));
         }
-
+        
     }
-
+    public function deactivate($id){
+        $user = User::where("id", $id)->first();
+        if (!$user){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "User Is Not Found" 
+                    ]
+                ]
+                ],404));
+        }
+        $user->active =0;
+        $user->update();
+        return response()->json([
+            "data" => [
+                "id" => $user->id,
+                "username" => $user->username,
+            ],
+            "success" => "User Successfully Deactivated"
+        ])->setStatusCode(200);
+    }
+    public function activate($id){
+        $user = User::where("id", $id)->first();
+        if (!$user){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "User Is Not Found" 
+                    ]
+                ]
+                ],404));
+        }
+        $user->active =1;
+        $user->update();
+        return response()->json([
+            "data" => [
+                "id" => $user->id,
+                "username" => $user->username,
+            ],
+            "success" => "User Successfully Activated"
+        ])->setStatusCode(200);
+    }
+    public function getPasswordUser($id){
+        
+        $user = User::where("id", $id)->first();
+        if (!$user){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "User Is Not Found" 
+                    ]
+                ]
+                ],404));
+        }
+        return response()->json([
+            "data" => [
+                "id" => $user->id,
+                "username" => $user->username,
+                "password" => $user->password,
+            ],
+            "success" => "Successfully Get Encrypted User Password"
+        ])->setStatusCode(200);
+    }
+    
 
 }

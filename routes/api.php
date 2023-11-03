@@ -27,13 +27,18 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(ApiAuthMiddleware::class)->group(function(){
     
     Route::controller(UserController::class)->group(function(){
+        Route::get("/users/password/{id}", "getPasswordUser");
         Route::get('/users/{id}', "get");
         Route::delete('/users/delete/{id}', 'delete');
         Route::get('/users' ,'getall');    
         Route::post('/users' ,'register');
         Route::put("/users/{id}", "update");
+        Route::patch("/users/deactivate/{id}", "deactivate");
+        Route::patch("/users/activate/{id}", "activate");
         Route::get('/users/checkcompany/{id}',"checkcompany");
     });
+    
+    
     Route::controller(ProductController::class)->group(function(){
         Route::post('/products' ,'create');
         Route::get('/products/{branchcode}/search' ,'search');
@@ -118,6 +123,7 @@ Route::controller(StockController::class)->group(function(){
     // Route::delete('/sales/{branchcode}/{id}' ,'delete');
     // Route::patch('/sales/{branchcode}/{id}' ,'approve');
 }); 
+
 
 
     
