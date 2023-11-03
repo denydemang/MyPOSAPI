@@ -223,15 +223,6 @@ class SalesController extends Controller
                 ]
                 ],500));
         }
-        if (!$sales){
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "ID or No_Trans Is Not Found"
-                    ]
-                ]
-            ],500));
-        }
         return response()->json(
             [
                 "data" => [

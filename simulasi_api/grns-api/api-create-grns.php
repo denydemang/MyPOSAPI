@@ -3,30 +3,25 @@
 // Data yang akan dikirimkan ke API
 $data = [
     'branchcode' => 'int',
-    'trans_date' => '2023-10-28',
-    'id_user' => 6,
-    'id_supplier' => 1,
-    'total' => 1000,
-    'discount' => 0,
-    'other_fee' => 0,
-    'payment_term' => null,
-    'ppn' => 0,
-    'grand_total' => 25000,
-    'is_credit' => true,
+    'received_date' => '2023-11-03',
+    'id_purchase' => 15 ,
+    'received_by' => 'demang',
+    'description' => 'lengkap lur',
     'items' => [
         [
             "id_product" => "7",
             "id_unit" => "pcs",
             "qty" => 10,
             "price" => 9999,
+            "bonusqty" => 10,
             "sub_total" => 9999,
             
-        ]
+        ],
     ],
 ];
 
 // URL endpoint API
-$apiUrl = 'http://127.0.0.1:8000/api/purchases';
+$apiUrl = 'http://127.0.0.1:8000/api/grns';
 
 // Inisialisasi cURL
 $ch = curl_init($apiUrl);

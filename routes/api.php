@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\GRNController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SalesController;
@@ -75,19 +76,40 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::delete('/categories/{id}' ,'delete');
     }); 
 
-    Route::controller(PurchaseController::class)->group(function(){
-        Route::get('/purchases/list/{branchcode}' ,'getall');
-        Route::get('/purchases/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
-        Route::get('/purchases/{branchcode}/search' ,'search');
-        Route::post('/purchases' ,'create');
-        Route::put('/purchases/{branchcode}/{idpurchaseortrans_no}' ,'update');
-        Route::delete('/purchases/{branchcode}/{id}' ,'delete');
-        Route::patch('/purchases/{branchcode}/{id}' ,'approve');
+  
+
+    Route::controller(SalesController::class)->group(function(){
+        Route::get('/sales/list/{branchcode}' ,'getall');
+        Route::get('/sales/detail/{branchcode}/{idsaleseortrans_no}' ,'get');
+        Route::get('/sales/{branchcode}/search' ,'search');
+        Route::post('/sales' ,'create');
+        Route::put('/sales/{branchcode}/{idsalesortrans_no}' ,'update');
+        Route::delete('/sales/{branchcode}/{idsalesortrans_no}' ,'delete');
+        Route::patch('/sales/{branchcode}/{idsalesortrans_no}' ,'approve');
     }); 
 
     
+    
+}); 
+Route::controller(PurchaseController::class)->group(function(){
+    Route::get('/purchases/list/{branchcode}' ,'getall');
+    Route::get('/purchases/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
+    Route::get('/purchases/{branchcode}/search' ,'search');
+    Route::post('/purchases' ,'create');
+    Route::put('/purchases/{branchcode}/{idpurchaseortrans_no}' ,'update');
+    Route::delete('/purchases/{branchcode}/{id}' ,'delete');
+    Route::patch('/purchases/{branchcode}/{id}' ,'approve');
 }); 
 
+Route::controller(GRNController::class)->group(function(){
+    Route::get('/grns/list/{branchcode}' ,'getall');
+    Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
+    Route::get('/grns/{branchcode}/search' ,'search');
+    Route::post('/grns' ,'create');
+    Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
+    Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
+    Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
+}); 
 Route::controller(StockController::class)->group(function(){
     Route::get('/stocks/{idproduct}/{qty}', 'stockout');
     // Route::get('/sales/list/{branchcode}' ,'getall');
@@ -98,15 +120,7 @@ Route::controller(StockController::class)->group(function(){
     // Route::delete('/sales/{branchcode}/{id}' ,'delete');
     // Route::patch('/sales/{branchcode}/{id}' ,'approve');
 }); 
-Route::controller(SalesController::class)->group(function(){
-    Route::get('/sales/list/{branchcode}' ,'getall');
-    Route::get('/sales/detail/{branchcode}/{idsaleseortrans_no}' ,'get');
-    Route::get('/sales/{branchcode}/search' ,'search');
-    Route::post('/sales' ,'create');
-    Route::put('/sales/{branchcode}/{idsalesortrans_no}' ,'update');
-    Route::delete('/sales/{branchcode}/{idsalesortrans_no}' ,'delete');
-    Route::patch('/sales/{branchcode}/{idsalesortrans_no}' ,'approve');
-}); 
+
 
     
 Route::delete('/users/logout', [UserController::class, 'logout']);

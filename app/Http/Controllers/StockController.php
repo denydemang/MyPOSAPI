@@ -92,46 +92,18 @@ class StockController extends Controller
         LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->delete();
     }
 
-    public function stockin(int $idproduct, int $qty):int{
+    public function stockin(int $idproduct, int $qty, string $trans_no ,string $date, string $branchcode ,string $idunit,int $price):void{
 
-        $Totalcogs = 0; //hpp atau cost of good sold
-        $remaining_stock = ProductView::where('id', $idproduct)->first();
+        $stock = new Stock();
+        $stock->branchcode = $branchcode;
+        $stock->ref = $trans_no;
+        $stock->date = $date;
+        $stock->id_product = $idproduct;
+        $stock->actual_stock = $qty;
+        $stock->used_stock = 0;
+        $stock->cogs = $price;
+        $stock->id_unit =$idunit;
+        $stock->save();
 
-        if (!$remaining_stock){
-            throw new Exception('Product Is Not Found');
-        }
-        
-        if(intval($remaining_stock->remaining_stock) < intval($qty)){
-            throw new Exception('Insufficient Stock Of Supplies');
-        }
-        $stocks = Stock::where("id_product",$idproduct)
-        ->whereColumn("actual_stock", ">" ,"used_stock")->lockForUpdate()->orderBy('date')->orderBy('id')->get();
-
-        // return response()->json($stocks);
-        foreach ($stocks as $stock){
-
-            if ($qty != 0) {
-
-                $stock_available= intval($stock->actual_stock - $stock->used_stock);
-    
-                    if($qty >= $stock_available){
-    
-                        $cogs = intval((intval($stock_available) * intval($stock->cogs)));
-                        $Totalcogs+= $cogs;
-                        $stock->used_stock += $stock_available;
-                        $stock->update();
-                        $qty-=$stock_available;
-                    } else {
-                        $cogs = intval((intval($qty) * intval($stock->cogs)));
-                        $Totalcogs+= $cogs;
-                        $stock->used_stock += $qty;
-                        $stock->update();
-                        $qty-=$qty;
-                    }
-            }
-        //     }
-        //     return $Totalcogs;
-        }
-        return $Totalcogs;
     }
 }
