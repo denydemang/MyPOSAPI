@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\GRNCreateRequest;
+use App\Http\Requests\GRNUpdateRequest;
 use App\Http\Resources\GRNSResourceCollection;
 use App\Models\DetailGRNS;
 use App\Models\GRNS;
@@ -168,6 +169,8 @@ class GRNController extends Controller
                     $newCode = "GRN-{$dateNow}-001";
                 }
                 $purchase = Purchase::where("branchcode", $dataValidated['branchcode'])->where("id",$dataValidated['id_purchase'])->first();
+                $purchase->is_received = 1;
+                $purchase->update();
                 $grns = new GRNS();
                 $grns->branchcode = $dataValidated['branchcode'];
                 $grns->trans_no = $newCode;
@@ -189,7 +192,8 @@ class GRNController extends Controller
                     $checkstock = new StockController();
                     $checkstock->stockin($item['id_product'],$totalqty, $grns->trans_no, $grns->received_date,$grns->branchcode,$item['id_unit'],$item['price']);   
                 };
-                $totalCogs = Stock::where('branchcode', $grns->branchcode)->where('ref', $grns->trans_no)->sum('cogs');
+                $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
+                $totalCogs = $Cogs->sum('cogs');
                 $datagrns = GRNSView::where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
             DB::commit();
 
@@ -213,6 +217,170 @@ class GRNController extends Controller
                 ],
                 "success" => "Successfully Saved GRNS Transaction"
             ]
-        );
+        )->setStatusCode(201);
+    }
+    public function update($branchcode,$key,GRNUpdateRequest $request) :JsonResponse
+    {
+        $dataValidated = $request->validated();
+
+        try {
+            $grns = GRNS::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", strval($key));
+                $query->orWhere("id", $key);
+            })->first();
+
+            if($grns){
+                DB::beginTransaction();
+
+
+                $grns = GRNS::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", $key);
+                $query->orWhere("id", $key);})->lockForUpdate()->first();
+                $grns->received_date = $dataValidated['received_date'];
+                if(intval($grns->id_purchase) != intval($dataValidated['id_purchase'])){
+                    $purchase = Purchase::where('id',$grns->id_purchase)->first();
+                    $purchase->is_received =0;
+                    $purchase->update();
+                   
+                    $purchase = Purchase::where('id',$dataValidated['id_purchase'])->first();
+                    $purchase->is_received =1;
+                    $purchase->update();
+
+                    $grns->id_purchase =$dataValidated['id_purchase'];
+                }
+                $grns->received_by = !empty($dataValidated['received_by']) ? $dataValidated['received_by'] :null;
+                $grns->grand_total =$dataValidated['grand_total'] ;
+                $grns->description =!empty($dataValidated['description']) ? $dataValidated['description'] : null ;
+                $grns->update();
+                DetailGRNS::where("id_grns" ,$grns->id)->delete();
+                $items= collect($dataValidated["items"])->transform(function($item) use($grns){
+                    return ['id_grns' => intval($grns->id)]+ $item;
+                });
+                DetailGRNS::insert($items->toArray());
+                $checkstock = new StockController();
+                $checkstock->updatestockin($items->toArray(),$grns->trans_no,$grns->received_date,$grns->branchcode);   
+                $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
+                $totalCogs = $Cogs->sum('cogs');
+                $datagrns = GRNSView::where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
+                DB::commit();
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+            DB::rollBack();
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if (!$grns){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],404));
+        }
+
+        return response()->json([
+            "data" =>[
+                "grns" => $datagrns,
+                "items" => $items,
+                "cogs" => $totalCogs,
+            ],
+            "success" => "Successfully Updated GRNS Transaction"
+        ])->setStatusCode(200);
+        
+    }
+    public function delete($branchcode, $key): JsonResponse
+    {
+        try {
+            $grns = GRNS::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", $key);
+                $query->orWhere("id", $key);
+            })->first();
+
+            if($grns){
+                DB::beginTransaction();
+                GRNS::where("branchcode", $branchcode)->where(function($query) use($key){
+                    $query->where("trans_no", $key);
+                    $query->orWhere("id", $key);
+                })->delete();
+                Stock::where('branchcode', $branchcode)->where('ref',$grns->trans_no)->delete();
+                Purchase::where('branchcode', $branchcode)->where('id',$grns->id_purchase)->update([
+                    "is_received" => 0
+                ]);
+                DB::commit();
+            }
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if(!$grns){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],404));
+        }
+        return response()->json([
+            "data" => $grns,
+            "success" => "Successfully Deleted GRN Transaction"
+        ])->setStatusCode(200);
+    }
+    public function approve($branchcode, $key){
+
+        try {
+            $grns = GRNS::where("branchcode", $branchcode)->where(function($query) use($key){
+                $query->where("trans_no", $key);
+                $query->orWhere("id", $key);
+            })->first();
+            if($grns){
+                $grns->is_approve =1;
+                $grns->update();
+
+                Stock::where("branchcode", $branchcode)->where("ref", $grns->trans_no)->update([
+                    "is_approve"  => 1
+                ]);
+                $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
+                $totalCogs = $Cogs->sum('cogs');
+                $datagrns = GRNSView::where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
+            }
+
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if (!$grns){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "ID or No_Trans Is Not Found"
+                    ]
+                ]
+            ],404));
+        }
+
+        return response()->json([
+            'data' => $datagrns,
+            "cogs" => $totalCogs,
+            "success" => "Successfully Approved GRN Transaction"
+            ])->setStatusCode(200);
     }
 }

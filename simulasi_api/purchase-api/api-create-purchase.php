@@ -3,7 +3,7 @@
 // Data yang akan dikirimkan ke API
 $data = [
     'branchcode' => 'int',
-    'trans_date' => '2023-10-28',
+    'trans_date' => '2023-11-03',
     'id_user' => 6,
     'id_supplier' => 1,
     'total' => 1000,
@@ -18,6 +18,22 @@ $data = [
             "id_product" => "7",
             "id_unit" => "pcs",
             "qty" => 10,
+            "price" => 9999,
+            "sub_total" => 9999,
+            
+        ],
+        [
+            "id_product" => "3",
+            "id_unit" => "pcs",
+            "qty" => 99,
+            "price" => 9999,
+            "sub_total" => 9999,
+            
+        ],
+        [
+            "id_product" => "8",
+            "id_unit" => "pcs",
+            "qty" => 100,
             "price" => 9999,
             "sub_total" => 9999,
             

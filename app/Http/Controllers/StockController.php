@@ -23,7 +23,7 @@ class StockController extends Controller
             throw new Exception('Insufficient Stock Of Supplies');
         }
         $stocks = Stock::where("id_product",$idproduct)
-        ->whereColumn("actual_stock", ">" ,"used_stock")->lockForUpdate()->orderBy('date')->orderBy('id')->get();
+        ->whereColumn("actual_stock", ">" ,"used_stock")->where('is_approve', 1)->lockForUpdate()->orderBy('date')->orderBy('id')->get();
 
         // return response()->json($stocks);
         foreach ($stocks as $stock){
@@ -105,5 +105,31 @@ class StockController extends Controller
         $stock->id_unit =$idunit;
         $stock->save();
 
+    }
+    public function updatestockin(array $dataitem,string $trans_no ,string $date, string $branchcode){
+
+       $stock = Stock::where("branchcode", $branchcode)->where("ref", $trans_no)->get();
+        
+       $counter =0;
+       foreach( $stock as $stck){
+        if ($stck->is_approve ==1){
+            throw new Exception('Transaction Is Already Approved Cannot Be Updated/Deleted');
+           }
+           else{
+            $stck->date = $date;
+            $stck->id_product = $dataitem[$counter]['id_product'];
+            $stck->actual_stock = $dataitem[$counter]['qty'];
+            $stck->used_stock = 0;
+            $stck->cogs =$dataitem[$counter]['price'] ;
+            $stck->id_unit =$dataitem[$counter]['id_unit'] ;
+            $stck->update();
+           }
+           $counter++;
+       }
+
+    //    $stock->delete();
+
+    //    $this->stockin($idproduct,$qty,$trans_no,$date,$branchcode,$idunit,$price);
+        
     }
 }

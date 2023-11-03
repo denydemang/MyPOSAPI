@@ -232,7 +232,7 @@ class SalesController extends Controller
                 ],
                 "success" => "Successfully Saved Sales Transaction"
             ]
-        );
+        )->setStatusCode(201);
     }
 
     public function update($branchcode,$key,SalesUpdateRequest $request) :JsonResponse
@@ -349,7 +349,7 @@ class SalesController extends Controller
         return response()->json([
             "data" => $sales,
             "success" => "Successfully Deleted Sales Transaction"
-        ]);
+        ])->setStatusCode(200);
     }
     public function approve($branchcode, $key){
 
@@ -388,6 +388,6 @@ class SalesController extends Controller
             'data' => $sales,
             "cogs" => $totalCogs,
             "success" => "Successfully Approved Transaction"
-            ]);
+            ])->setStatusCode(200);
     }
 }

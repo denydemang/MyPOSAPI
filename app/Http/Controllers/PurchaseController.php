@@ -8,9 +8,6 @@ use App\Http\Resources\PurchaseResourceCollection;
 use App\Models\DetailPurchase;
 use App\Models\Purchase;
 use App\Models\PurchaseView;
-use Illuminate\Contracts\Database\Eloquent\Builder;
-use Illuminate\Contracts\Database\Query\Builder as QueryBuilder;
-use Illuminate\Database\Query\Builder as DatabaseQueryBuilder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,6 +30,7 @@ class PurchaseController extends Controller
         $firstdate =  date("Y-m-d",strtotime(Carbon::now()->firstOfMonth()));
         $lastdate =  date("Y-m-d",strtotime(Carbon::now()->lastOfMonth()));
         $iscredit = $request->get('iscredit'); 
+        $isreceived = $request->get('isreceived'); 
         $isapprove = $request->get('isapprove'); 
         $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "trans_date";
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
@@ -53,6 +51,9 @@ class PurchaseController extends Controller
                 })
                 ->when($isapprove, function($query, string $isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
+                })
+                ->when($isreceived, function($query, string $isreceived){
+                    $query->where('is_received', filter_var($isreceived, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->groupBy('trans_no')
                 ->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)
@@ -124,6 +125,7 @@ class PurchaseController extends Controller
 
         $iscredit = $request->get('iscredit'); 
         $isapprove = $request->get('isapprove'); 
+        $isreceived = $request->get('isreceived');
         $firstdate =  date("Y-m-d",strtotime(Carbon::now()->firstOfMonth()));
         $lastdate =  date("Y-m-d",strtotime(Carbon::now()->lastOfMonth()));
         $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "trans_date";
@@ -146,6 +148,9 @@ class PurchaseController extends Controller
                 })
                 ->when($isapprove, function($query, string $isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
+                })
+                ->when($isreceived, function($query, string $isreceived){
+                    $query->where('is_received', filter_var($isreceived, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->where(function($query) use ($key){
                     $query->Where('trans_no', 'like', "%{$key}%");
@@ -222,7 +227,7 @@ class PurchaseController extends Controller
                 ],
                 "success" => "Successfully Saved Purchase Transaction"
             ]
-        )->setStatusCode(200);
+        )->setStatusCode(201);
 
     }
     public function update($branchcode,$key,PurchaseUpdateRequest $request) :JsonResponse
@@ -324,7 +329,7 @@ class PurchaseController extends Controller
         return response()->json([
             "data" => $purchase,
             "success" => "Successfully Deleted Purchase Transaction"
-        ]);
+        ])->setStatusCode(200);
     }
     public function approve($branchcode, $key){
 
@@ -363,6 +368,6 @@ class PurchaseController extends Controller
                 'is_approve' => $purchase->is_approve
             ],
             "success" => "successfully Approved Transaction"
-            ]);
+            ])->setStatusCode(200);
     }
 }

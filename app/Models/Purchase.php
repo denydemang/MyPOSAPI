@@ -28,5 +28,6 @@ class Purchase extends Model
         "is_approve",
         "total",
         "is_credit",
+        "is_received"
     ];
 }

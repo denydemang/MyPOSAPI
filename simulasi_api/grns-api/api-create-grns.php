@@ -4,7 +4,7 @@
 $data = [
     'branchcode' => 'int',
     'received_date' => '2023-11-03',
-    'id_purchase' => 15 ,
+    'id_purchase' => 16 ,
     'received_by' => 'demang',
     'description' => 'lengkap lur',
     'items' => [
@@ -12,11 +12,29 @@ $data = [
             "id_product" => "7",
             "id_unit" => "pcs",
             "qty" => 10,
+            "bonusqty" => 2000,
             "price" => 9999,
-            "bonusqty" => 10,
             "sub_total" => 9999,
             
         ],
+        [
+            "id_product" => "3",
+            "id_unit" => "pcs",
+            "qty" => 99,
+            "bonusqty" => 2000,
+            "price" => 9999,
+            "sub_total" => 9999,
+            
+        ],
+        [
+            "id_product" => "8",
+            "id_unit" => "pcs",
+            "qty" => 100,
+            "price" => 9999,
+            "bonusqty" => 2000,
+            "sub_total" => 9999,
+            
+        ]
     ],
 ];
 

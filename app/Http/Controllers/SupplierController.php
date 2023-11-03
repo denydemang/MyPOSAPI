@@ -122,7 +122,7 @@ class SupplierController extends Controller
                 "name" => $data->name,
             ],
             "success" => "Successfully Updated Supplier"
-        ]);
+        ])->setStatusCode(200);
 
 
     }
