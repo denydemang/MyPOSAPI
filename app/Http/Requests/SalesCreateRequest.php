@@ -47,6 +47,7 @@ class SalesCreateRequest extends FormRequest
             "items.*.id_unit" => "required" ,
             "items.*.qty" => "required|numeric" ,
             "items.*.price" => "required|numeric" ,
+            "items.*.total" => "required|numeric" ,
             "items.*.discount" => "nullable|numeric" ,
             "items.*.sub_total" => "required|numeric" ,
         ];

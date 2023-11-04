@@ -45,7 +45,7 @@ class SalesController extends Controller
             $sales =SalesView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_cust','cust_no','cust_name','id_user', 'username' ,'pic_name' , 'role_name',
-                'total', 'sales_ppn','other_fee', 'sales_notes',
+                'total_sales', 'sales_ppn','other_fee', 'sales_notes',
                 'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -81,7 +81,7 @@ class SalesController extends Controller
             $sales = SalesView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_cust','cust_no','cust_name','id_user', 'username' ,'pic_name' , 'role_name',
-                'total' , 'sales_ppn', 'other_fee','sales_notes',
+                'total_sales' , 'sales_ppn', 'other_fee','sales_notes',
                 'is_sales_credit','grand_total', 'paid', 'change_amount'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
@@ -93,7 +93,7 @@ class SalesController extends Controller
                 'trans_no', 'id_detail_sales',
                 'id_product', 'barcode',
                 'product_name', 'unit',
-                'qty', 'price', 'discount','sub_total'
+                'qty', 'price','total', 'discount','sub_total'
 
             )->where('branchcode', $branchcode)->where(function($query) use ($id){
                 $query->where('trans_no', $id);
@@ -138,7 +138,7 @@ class SalesController extends Controller
             $sales =SalesView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_cust','cust_no','cust_name','id_user', 'username' ,'pic_name' , 'role_name',
-                'total', 'sales_ppn', 'other_fee','sales_notes',
+                'total_sales', 'sales_ppn', 'other_fee','sales_notes',
                 'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])

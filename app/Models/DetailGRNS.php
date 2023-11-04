@@ -20,6 +20,7 @@ class DetailGRNS extends Model
         "qty",
         "bonusqty",
         "price",
+        "total",
         "discount",
         "sub_total",
     ];

@@ -42,7 +42,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name','total', DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'supplier_name','total_purchase', DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -81,7 +81,7 @@ class PurchaseController extends Controller
             $purchase = PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name','total', 'other_fee', 'ppn',
+                'id_supplier' ,'supplier_name','total_purchase', 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
@@ -93,7 +93,7 @@ class PurchaseController extends Controller
                 'trans_no', 'id_detail_purchases',
                 'id_product', 'barcode',
                 'product_name', 'unit',
-                'qty', 'price', 'discount','sub_total'
+                'qty', 'price','total', 'discount','sub_total'
 
             )->where('branchcode', $branchcode)->where(function($query) use ($id){
                 $query->where('trans_no', $id);
@@ -139,7 +139,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name', 'total',DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'supplier_name', 'total_purchase',DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
