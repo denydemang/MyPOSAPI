@@ -20,7 +20,6 @@ class Purchase extends Model
         "id_user",
         "id_supplier",
         "total",
-        "dicount",
         "other_fee",
         "ppn",
         "grand_total",

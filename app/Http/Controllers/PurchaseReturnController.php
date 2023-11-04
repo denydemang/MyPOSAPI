@@ -2,22 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PurchaseCreateRequest;
-use App\Http\Requests\PurchaseUpdateRequest;
-use App\Http\Resources\PurchaseResourceCollection;
-use App\Models\DetailPurchase;
-use App\Models\Purchase;
-use App\Models\PurchaseView;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\URL;
 
-class PurchaseController extends Controller
+class PurchaseReturnController extends Controller
 {
+    
     public function __construct()
     {
         date_default_timezone_set('Asia/Jakarta');
@@ -42,7 +31,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name','total', DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'supplier_name','total', DB::raw('count(trans_no) as total_product'),'discount', 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -81,7 +70,7 @@ class PurchaseController extends Controller
             $purchase = PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name','total', 'other_fee', 'ppn',
+                'id_supplier' ,'supplier_name','total','discount', 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
@@ -93,7 +82,7 @@ class PurchaseController extends Controller
                 'trans_no', 'id_detail_purchases',
                 'id_product', 'barcode',
                 'product_name', 'unit',
-                'qty', 'price', 'discount','sub_total'
+                'qty', 'price', 'sub_total'
 
             )->where('branchcode', $branchcode)->where(function($query) use ($id){
                 $query->where('trans_no', $id);
@@ -139,7 +128,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name', 'total',DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'supplier_name', 'total',DB::raw('count(trans_no) as total_product'),'discount', 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -193,6 +182,7 @@ class PurchaseController extends Controller
                 $purchase->id_user = $dataValidated['id_user'];
                 $purchase->id_supplier = $dataValidated['id_supplier'];
                 $purchase->total = $dataValidated['total'];
+                $purchase->discount = !empty($dataValidated['discount'])? $dataValidated['discount'] : 0;
                 $purchase->other_fee = !empty($dataValidated['other_fee']) ? $dataValidated['other_fee'] : 0;
                 $purchase->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
                 $purchase->payment_term = !empty($dataValidated['payment_term']) ? $dataValidated['payment_term'] : null;
@@ -248,6 +238,7 @@ class PurchaseController extends Controller
                     $purchase->id_user = $dataValidated['id_user'];
                     $purchase->id_supplier = $dataValidated['id_supplier'];
                     $purchase->total = $dataValidated['total'];
+                    $purchase->discount = $dataValidated['discount'];
                     $purchase->other_fee = $dataValidated['other_fee'];
                     $purchase->ppn = $dataValidated['ppn'];
                     $purchase->grand_total = $dataValidated['grand_total'];

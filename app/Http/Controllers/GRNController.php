@@ -41,7 +41,7 @@ class GRNController extends Controller
             $grns =GRNSView::select(    
                 'branchcode', 'id' , 'trans_no', 
                 'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
-                'description', 'total' ,'discount','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
+                'description', 'total','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
                 )->where("branchcode", $branchcode)
                 ->whereBetween("received_date", [$startdate,$enddate])
                 ->when($isapprove, function($query, string $isapprove){
@@ -73,7 +73,7 @@ class GRNController extends Controller
             $grns = GRNSView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
-                'description', 'total' ,'discount','other_fee','ppn','grand_total','is_approve'
+                'description', 'total','other_fee','ppn','grand_total','is_approve'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
                     $query->where("trans_no", $id);
@@ -84,7 +84,7 @@ class GRNController extends Controller
                 'trans_no', 'id_detail_grns',
                 'id_product', 'barcode',
                 'name', 'brands', 'id_unit',
-                'qty', 'bonusqty','price', 'sub_total'
+                'qty', 'bonusqty','price','discount', 'sub_total'
 
             )->where('branchcode', $branchcode)->where(function($query) use ($id){
                 $query->where('trans_no', $id);
@@ -127,7 +127,7 @@ class GRNController extends Controller
             $grns =GRNSView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
-                'description', 'total' ,'discount','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
+                'description', 'total','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
                 )->where("branchcode", $branchcode)
                 ->whereBetween("received_date", [$startdate,$enddate])
                 ->when($isapprove, function($query, string $isapprove){
@@ -241,7 +241,7 @@ class GRNController extends Controller
                     $purchase = Purchase::where('id',$grns->id_purchase)->first();
                     $purchase->is_received =0;
                     $purchase->update();
-                   
+                
                     $purchase = Purchase::where('id',$dataValidated['id_purchase'])->first();
                     $purchase->is_received =1;
                     $purchase->update();

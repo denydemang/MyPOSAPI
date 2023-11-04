@@ -31,7 +31,6 @@ class PurchaseCreateRequest extends FormRequest
             "id_user" => "required",
             "id_supplier" => "required",
             "total" => "required|numeric",
-            "discount" => "nullable|numeric",
             "other_fee" => "nullable|numeric",
             "payment_term" => "nullable",
             "ppn" => "nullable|numeric",
@@ -41,6 +40,7 @@ class PurchaseCreateRequest extends FormRequest
             "items.*.id_unit" => "required" ,
             "items.*.qty" => "required|numeric" ,
             "items.*.price" => "required|numeric" ,
+            "items.*.discount" => "nullable|numeric" ,
             "items.*.sub_total" => "required|numeric" ,
         ];
     }

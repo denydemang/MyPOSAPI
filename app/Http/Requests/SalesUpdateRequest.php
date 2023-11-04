@@ -30,7 +30,7 @@ class SalesUpdateRequest extends FormRequest
             "id_cust" => "required",
             "id_user" => "required",
             "total" => "required|numeric",
-            "discount" => "nullable|numeric",
+            "other_fee" => "nullable|numeric",
             "ppn" => "nullable|numeric",
             "notes" => "nullable",
             "grand_total" => "required|numeric",   
@@ -41,7 +41,7 @@ class SalesUpdateRequest extends FormRequest
             "items.*.id_unit" => "required" ,
             "items.*.qty" => "required|numeric" ,
             "items.*.price" => "required|numeric" ,
-            "items.*.discount" => "required|numeric" ,
+            "items.*.discount" => "nullable|numeric" ,
             "items.*.sub_total" => "required|numeric" ,
         ];
     }

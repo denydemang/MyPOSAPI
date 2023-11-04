@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\GRNController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
@@ -102,6 +103,16 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     }); 
     
     Route::controller(GRNController::class)->group(function(){
+        Route::get('/grns/list/{branchcode}' ,'getall');
+        Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
+        Route::get('/grns/{branchcode}/search' ,'search');
+        Route::post('/grns' ,'create');
+        Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
+        Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
+        Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
+    }); 
+
+    Route::controller(PurchaseReturnController::class)->group(function(){
         Route::get('/grns/list/{branchcode}' ,'getall');
         Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
         Route::get('/grns/{branchcode}/search' ,'search');

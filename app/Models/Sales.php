@@ -20,7 +20,7 @@ class Sales extends Model
         "id_cust",
         "id_user",
         "total",
-        "discount",
+        "other_fee",
         "ppn",
         "notes",
         "grand_total",

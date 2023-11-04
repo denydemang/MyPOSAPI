@@ -36,6 +36,7 @@ class GRNCreateRequest extends FormRequest
             "items.*.qty" => "required|numeric" ,   
             "items.*.bonusqty" => "required|numeric" ,   
             "items.*.price" => "required|numeric" ,
+            "items.*.discount" => "nullable|numeric" ,
             "items.*.sub_total" => "required|numeric" ,
         ];
     }

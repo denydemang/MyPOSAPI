@@ -19,6 +19,7 @@ class DetailPurchase extends Model
         "id_unit",
         "qty",
         "price",
+        "discount",
         "sub_total",
     ];
 }
