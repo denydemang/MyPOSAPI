@@ -8,8 +8,10 @@ use App\Http\Resources\GRNSResourceCollection;
 use App\Models\DetailGRNS;
 use App\Models\GRNS;
 use App\Models\GRNSView;
+use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Stock;
+use App\Models\UnitView;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -182,18 +184,47 @@ class GRNController extends Controller
                 $grns->save();
 
                 $items= collect($dataValidated["items"])->transform(function($item) use($grns){
+                    unset($item['unitbonusqty']);
                     return ['id_grns' => intval($grns->id)]+ $item;
                 });
+            
                 DetailGRNS::insert($items->toArray());  
 
+                $totalQtyTransaction =0;
+                $totalQtyBonusTransaction =0;
+                $other_fee = intval(Purchase::where('id', $grns->id_purchase)->first(['other_fee'])->other_fee);
+                
+                //menghitung total qty dan bonus
+                foreach($dataValidated['items'] as $item){
+                    $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
+                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
+                    $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
+                    $convert_value_bonus = 1;
+                    if ($unitbonus != null) {
+                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
+                    }
+                    $totalQtyTransaction += (intval($item['qty']) * $convert_value);
+                    $totalQtyBonusTransaction += (intval($bonusqty) * $convert_value_bonus);
+                }
+                $other_fee_per_item =round($other_fee /($totalQtyTransaction+$totalQtyBonusTransaction),6);
                 foreach ($dataValidated['items'] as $item) {
                     $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
-                    $totalqty = intval($item['qty']) + $bonusqty;
+                    $id_unit = Product::where('id', $item['id_product'])->first(['id_unit'])->id_unit;
+                    $qty = intval($item['qty']);
+                    $total = intval($item['sub_total']);
+                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
+                    $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
+                    $convert_value_bonus = 1;
+                    if ($unitbonus != null) {
+                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
+                    }
+                    $qtyandbonus = ($qty * $convert_value) + ($bonusqty * $convert_value_bonus);
+                    $hpp = round((($total / $qtyandbonus ) + $other_fee_per_item), 6);
                     $checkstock = new StockController();
-                    $checkstock->stockin($item['id_product'],$totalqty, $grns->trans_no, $grns->received_date,$grns->branchcode,$item['id_unit'],$item['price']);   
+                    $checkstock->stockin($item['id_product'],$qtyandbonus, $grns->trans_no, $grns->received_date,$grns->branchcode,$id_unit,$hpp);   
                 };
                 $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
-                $totalCogs = $Cogs->sum('cogs');
+                $totalCogs = round($Cogs->sum('cogs'), 0);
                 $datagrns = GRNSView::where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
             DB::commit();
 
@@ -218,6 +249,13 @@ class GRNController extends Controller
                 "success" => "Successfully Saved GRNS Transaction"
             ]
         )->setStatusCode(201);
+        // return response()->json([
+        //     "totalQtyTransaction" => $totalQtyTransaction,
+        //     "totalQtyBonusTransaction" => $totalQtyBonusTransaction,
+        //     "other_fee" => $other_fee,
+        //     "other_fee_per_item" => $other_fee_per_item,
+        //     "hpp" => $hpp,
+        // ]);
     }
     public function update($branchcode,$key,GRNUpdateRequest $request) :JsonResponse
     {

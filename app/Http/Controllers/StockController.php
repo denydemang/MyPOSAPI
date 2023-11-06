@@ -92,7 +92,7 @@ class StockController extends Controller
         LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->delete();
     }
 
-    public function stockin(int $idproduct, int $qty, string $trans_no ,string $date, string $branchcode ,string $idunit,int $price):void{
+    public function stockin(int $idproduct, int $qty, string $trans_no ,string $date, string $branchcode ,string $idunit,float $price):void{
 
         $stock = new Stock();
         $stock->branchcode = $branchcode;
@@ -108,14 +108,16 @@ class StockController extends Controller
     }
     public function updatestockin(array $dataitem,string $trans_no ,string $date, string $branchcode){
 
-       $stock = Stock::where("branchcode", $branchcode)->where("ref", $trans_no)->get();
+        $stock = Stock::where("branchcode", $branchcode)->where("ref", $trans_no)->get();
         
-       $counter =0;
-       foreach( $stock as $stck){
-        if ($stck->is_approve ==1){
+        $counter =0;
+        foreach( $stock as $stck){
+            if ($stck->is_approve ==1){
             throw new Exception('Transaction Is Already Approved Cannot Be Updated/Deleted');
-           }
-           else{
+        }
+        else{
+
+
             $stck->date = $date;
             $stck->id_product = $dataitem[$counter]['id_product'];
             $stck->actual_stock = $dataitem[$counter]['qty'];

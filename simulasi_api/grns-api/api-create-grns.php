@@ -3,38 +3,53 @@
 // Data yang akan dikirimkan ke API
 $data = [
     'branchcode' => 'int',
-    'received_date' => '2023-11-03',
-    'id_purchase' => 16 ,
+    'received_date' => '2023-11-04',
+    'id_purchase' => 15 ,
     'received_by' => 'demang',
     'description' => 'lengkap lur',
     'items' => [
         [
-            "id_product" => "7",
-            "id_unit" => "pcs",
-            "qty" => 10,
-            "bonusqty" => 2000,
-            "price" => 9999,
-            "sub_total" => 9999,
+            "id_product" => "7" ,
+            "id_unit" => "rim" ,
+            "qty" => 200 ,   
+            "bonusqty" => 100 ,   
+            "unitbonusqty" => "pcs" ,   
+            "price" => 10000 ,
+            "total"=> 2000000,
+            "discount" => 10000,
+            "sub_total" =>1999000,
             
         ],
-        [
-            "id_product" => "3",
-            "id_unit" => "pcs",
-            "qty" => 99,
-            "bonusqty" => 2000,
-            "price" => 9999,
-            "sub_total" => 9999,
+        // [
+        //     "id_product" => "11" ,
+        //     "id_unit" => "pcs" ,
+        //     "qty" => 200 ,   
+        //     "bonusqty" => 100 ,   
+        //     "unitbonusqty" => "pcs" ,   
+        //     "price" => 1000 ,
+        //     "total"=> 200000,
+        //     "discount" => 1000 ,
+        //     "sub_total" =>199000,
             
-        ],
-        [
-            "id_product" => "8",
-            "id_unit" => "pcs",
-            "qty" => 100,
-            "price" => 9999,
-            "bonusqty" => 2000,
-            "sub_total" => 9999,
+        // ],
+        // [
+        //     "id_product" => "3",
+        //     "id_unit" => "pcs",
+        //     "qty" => 99,
+        //     "bonusqty" => 2000,
+        //     "price" => 9999,
+        //     "sub_total" => 9999,
             
-        ]
+        // ],
+        // [
+        //     "id_product" => "8",
+        //     "id_unit" => "pcs",
+        //     "qty" => 100,
+        //     "price" => 9999,
+        //     "bonusqty" => 2000,
+        //     "sub_total" => 9999,
+            
+        // ]
     ],
 ];
 
