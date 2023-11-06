@@ -10,6 +10,7 @@ use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
 use Illuminate\Http\Request;
@@ -123,6 +124,17 @@ Route::controller(GRNController::class)->group(function(){
     Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
     Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
     Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
+}); 
+Route::controller(UnitController::class)->group(function(){
+    Route::get('/units/list' ,'getall');
+    Route::get('/units/group/{idunit}' ,'getgroup');
+    Route::get('/units/default' ,'getdefault');
+    // Route::get('/units/detail/{branchcode}/{idunitseortrans_no}' ,'get');
+    // Route::get('/units/{branchcode}/search' ,'search');
+    // Route::post('/units' ,'create');
+    // Route::put('/units/{branchcode}/{idunitsortrans_no}' ,'update');
+    // Route::delete('/units/{branchcode}/{idunitsortrans_no}' ,'delete');
+    // Route::patch('/units/{branchcode}/{idunitsortrans_no}' ,'approve');
 }); 
 
 Route::controller(StockController::class)->group(function(){
