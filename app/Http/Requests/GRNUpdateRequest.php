@@ -27,14 +27,17 @@ class GRNUpdateRequest extends FormRequest
     {
         return [
             "received_date" => "required",
-            "id_purchase" => "required",
             "received_by" => "nullable",
             "grand_total" => "required|numeric",
             "description" => "nullable",  
             "items.*.id_product" => "required" ,
             "items.*.id_unit" => "required" ,
-            "items.*.qty" => "required|numeric" ,
+            "items.*.qty" => "required|numeric" ,   
+            "items.*.bonusqty" => "nullable|numeric" ,   
+            "items.*.unitbonusqty" => "nullable" , 
             "items.*.price" => "required|numeric" ,
+            "items.*.total"=> "required|numeric" ,
+            "items.*.discount" => "nullable|numeric" ,
             "items.*.sub_total" => "required|numeric" ,
         ];
     }

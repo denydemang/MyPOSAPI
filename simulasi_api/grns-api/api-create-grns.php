@@ -17,7 +17,19 @@ $data = [
             "price" => 10000 ,
             "total"=> 2000000,
             "discount" => 10000,
-            "sub_total" =>1999000,
+            "sub_total" =>1990000,
+            
+        ],
+        [
+            "id_product" => "11" ,
+            "id_unit" => "rim" ,
+            "qty" => 400 ,   
+            "bonusqty" => 100 ,   
+            "unitbonusqty" => "pcs" ,   
+            "price" => 10000 ,
+            "total"=> 4000000,
+            "discount" => 10000,
+            "sub_total" =>3990000,
             
         ],
         // [

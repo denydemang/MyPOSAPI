@@ -223,9 +223,24 @@ class GRNController extends Controller
                     $checkstock = new StockController();
                     $checkstock->stockin($item['id_product'],$qtyandbonus, $grns->trans_no, $grns->received_date,$grns->branchcode,$id_unit,$hpp);   
                 };
+
+                
+                $datagrns = GRNSView::select(
+                    'branchcode', 'id' , 'trans_no', 
+                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                    'description', 'total_purchase','other_fee','ppn','grand_total','is_approve'
+                    )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
+
+                $dataitem = GRNSView::select(
+                    'branchcode' , 'id',
+                    'trans_no', 'id_detail_grns',
+                    'id_product', 'barcode',
+                    'name', 'brands', 'id_unit',
+                    'qty', 'bonusqty','price','total','discount', 'sub_total'
+    
+                )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->get();
                 $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
                 $totalCogs = round($Cogs->sum('cogs'), 0);
-                $datagrns = GRNSView::where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
             DB::commit();
 
 
@@ -243,9 +258,9 @@ class GRNController extends Controller
             [
                 "data" => [
                     "grns" => $datagrns,
-                    "items" => $items,
-                    "cogs" => $totalCogs
+                    "items" => $dataitem,
                 ],
+                "cogs" => $totalCogs,
                 "success" => "Successfully Saved GRNS Transaction"
             ]
         )->setStatusCode(201);
@@ -269,37 +284,83 @@ class GRNController extends Controller
 
             if($grns){
                 DB::beginTransaction();
-
-
+          
                 $grns = GRNS::where("branchcode", $branchcode)->where(function($query) use($key){
                 $query->where("trans_no", $key);
                 $query->orWhere("id", $key);})->lockForUpdate()->first();
                 $grns->received_date = $dataValidated['received_date'];
-                if(intval($grns->id_purchase) != intval($dataValidated['id_purchase'])){
-                    $purchase = Purchase::where('id',$grns->id_purchase)->first();
-                    $purchase->is_received =0;
-                    $purchase->update();
-                
-                    $purchase = Purchase::where('id',$dataValidated['id_purchase'])->first();
-                    $purchase->is_received =1;
-                    $purchase->update();
-
-                    $grns->id_purchase =$dataValidated['id_purchase'];
-                }
                 $grns->received_by = !empty($dataValidated['received_by']) ? $dataValidated['received_by'] :null;
                 $grns->grand_total =$dataValidated['grand_total'] ;
                 $grns->description =!empty($dataValidated['description']) ? $dataValidated['description'] : null ;
                 $grns->update();
+
                 DetailGRNS::where("id_grns" ,$grns->id)->delete();
                 $items= collect($dataValidated["items"])->transform(function($item) use($grns){
+                    unset($item['unitbonusqty']);
                     return ['id_grns' => intval($grns->id)]+ $item;
                 });
                 DetailGRNS::insert($items->toArray());
+
+
+                //Kalkulasi HPP Baru
+                $totalQtyTransaction =0;
+                $totalQtyBonusTransaction =0;
+                $other_fee = intval(Purchase::where('id', $grns->id_purchase)->first(['other_fee'])->other_fee);
+                foreach($dataValidated['items'] as $item){
+                    $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
+                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
+                    $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
+                    $convert_value_bonus = 1;
+                    if ($unitbonus != null) {
+                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
+                    }
+                    $totalQtyTransaction += (intval($item['qty']) * $convert_value);
+                    $totalQtyBonusTransaction += (intval($bonusqty) * $convert_value_bonus);
+                }
+                $other_fee_per_item =round($other_fee /($totalQtyTransaction+$totalQtyBonusTransaction),6);
+                $totalitemandphp =[];
+                foreach ($dataValidated['items'] as $item) {
+                    $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
+                    $id_unit = Product::where('id', $item['id_product'])->first(['id_unit'])->id_unit;
+                    $qty = intval($item['qty']);
+                    $total = intval($item['sub_total']);
+                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
+                    $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
+                    $convert_value_bonus = 1;
+                    if ($unitbonus != null) {
+                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
+                    }
+
+                    $qtyandbonus = ($qty * $convert_value) + ($bonusqty * $convert_value_bonus);
+                    $hpp = round((($total / $qtyandbonus ) + $other_fee_per_item), 6);
+                    $totalitemandphp[]=[
+                        'id_product' => $item['id_product'],
+                        'qty' => $qtyandbonus,
+                        'price' => $hpp,
+                        'id_unit'=> $id_unit,
+                    ];
+                };
+
+                $datagrns = GRNSView::select(
+                    'branchcode', 'id' , 'trans_no', 
+                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                    'description', 'total_purchase','other_fee','ppn','grand_total','is_approve'
+                    )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
+
+                $dataitem = GRNSView::select(
+                    'branchcode' , 'id',
+                    'trans_no', 'id_detail_grns',
+                    'id_product', 'barcode',
+                    'name', 'brands', 'id_unit',
+                    'qty', 'bonusqty','price','total','discount', 'sub_total'
+    
+                )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->get();
+                
+
                 $checkstock = new StockController();
-                $checkstock->updatestockin($items->toArray(),$grns->trans_no,$grns->received_date,$grns->branchcode);   
+                $checkstock->updatestockin($totalitemandphp,$grns->trans_no,$grns->received_date,$grns->branchcode);   
                 $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
-                $totalCogs = $Cogs->sum('cogs');
-                $datagrns = GRNSView::where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
+                $totalCogs = round($Cogs->sum('cogs'),0);
                 DB::commit();
             }
         } catch (\Throwable $th) {
@@ -326,11 +387,13 @@ class GRNController extends Controller
         return response()->json([
             "data" =>[
                 "grns" => $datagrns,
-                "items" => $items,
-                "cogs" => $totalCogs,
+                "items" => $dataitem,
             ],
+            "cogs" => $totalCogs,
             "success" => "Successfully Updated GRNS Transaction"
         ])->setStatusCode(200);
+        
+        // return response()->json($totalitemandphp)->setStatusCode(200);
         
     }
     public function delete($branchcode, $key): JsonResponse
@@ -392,8 +455,21 @@ class GRNController extends Controller
                     "is_approve"  => 1
                 ]);
                 $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
-                $totalCogs = $Cogs->sum('cogs');
-                $datagrns = GRNSView::where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
+                $totalCogs = round($Cogs->sum('cogs'), 0);
+                $datagrns = GRNSView::select(
+                    'branchcode', 'id' , 'trans_no', 
+                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                    'description', 'total_purchase','other_fee','ppn','grand_total','is_approve'
+                    )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
+
+                $dataitem = GRNSView::select(
+                    'branchcode' , 'id',
+                    'trans_no', 'id_detail_grns',
+                    'id_product', 'barcode',
+                    'name', 'brands', 'id_unit',
+                    'qty', 'bonusqty','price','total','discount', 'sub_total'
+    
+                )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->get();
             }
 
         } catch (\Throwable $th) {
@@ -416,7 +492,10 @@ class GRNController extends Controller
         }
 
         return response()->json([
-            'data' => $datagrns,
+            "data" =>[
+                "grns" => $datagrns,
+                "items" => $dataitem,
+            ],
             "cogs" => $totalCogs,
             "success" => "Successfully Approved GRN Transaction"
             ])->setStatusCode(200);

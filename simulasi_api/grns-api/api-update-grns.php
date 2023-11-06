@@ -1,44 +1,71 @@
 <?php
 
 $branchcode = "int";
-$key = "GRN-2023-11-03-003";
+$key = "GRN-2023-11-06-001";
 
 // Data yang akan diupdate
 $request_data = [
     'branchcode' => 'int',
     'received_date' => '2023-11-03',
-    'id_purchase' => 16,
+    'id_purchase' => 15,
     'received_by' => 'demang',
     'description' => 'lengkap lur',
     'grand_total' => 88392,
     'items' => [
         [
-            "id_product" => "7",
-            "id_unit" => "pcs",
-            "qty" => 20,
-            "bonusqty" => 2,
-            "price" => 9999,
-            "sub_total" => 9999,
+            "id_product" => "7" ,
+            "id_unit" => "rim" ,
+            "qty" => 200 ,   
+            "bonusqty" => 3 ,   
+            "unitbonusqty" => "rim" ,   
+            "price" => 10000 ,
+            "total"=> 2000000,
+            "discount" => 10000,
+            "sub_total" =>1990000,
             
         ],
         [
-            "id_product" => "3",
-            "id_unit" => "pcs",
-            "qty" => 20,
-            "bonusqty" => 22,
-            "price" => 9999,
-            "sub_total" => 9999,
+            "id_product" => "11" ,
+            "id_unit" => "rim" ,
+            "qty" => 400 ,   
+            "bonusqty" => 3 ,   
+            "unitbonusqty" => "rim" ,   
+            "price" => 10000 ,
+            "total"=> 4000000,
+            "discount" => 10000,
+            "sub_total" =>3990000,
             
         ],
-        [
-            "id_product" => "8",
-            "id_unit" => "pcs",
-            "qty" => 10,
-            "price" => 9999,
-            "bonusqty" => 11,
-            "sub_total" => 9999,
+        // [
+        //     "id_product" => "11" ,
+        //     "id_unit" => "pcs" ,
+        //     "qty" => 200 ,   
+        //     "bonusqty" => 100 ,   
+        //     "unitbonusqty" => "pcs" ,   
+        //     "price" => 1000 ,
+        //     "total"=> 200000,
+        //     "discount" => 1000 ,
+        //     "sub_total" =>199000,
             
-        ]
+        // ],
+        // [
+        //     "id_product" => "3",
+        //     "id_unit" => "pcs",
+        //     "qty" => 99,
+        //     "bonusqty" => 2000,
+        //     "price" => 9999,
+        //     "sub_total" => 9999,
+            
+        // ],
+        // [
+        //     "id_product" => "8",
+        //     "id_unit" => "pcs",
+        //     "qty" => 100,
+        //     "price" => 9999,
+        //     "bonusqty" => 2000,
+        //     "sub_total" => 9999,
+            
+        // ]
     ],
 ];
 
