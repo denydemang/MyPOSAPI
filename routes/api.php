@@ -112,18 +112,18 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
     }); 
 
-    Route::controller(GRNController::class)->group(function(){
-        Route::get('/grns/list/{branchcode}' ,'getall');
-        Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
-        Route::get('/grns/{branchcode}/search' ,'search');
-        Route::post('/grns' ,'create');
-        Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
-        Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
-        Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
-    }); 
     
 }); 
 
+Route::controller(GRNController::class)->group(function(){
+    Route::get('/grns/list/{branchcode}' ,'getall');
+    Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
+    Route::get('/grns/{branchcode}/search' ,'search');
+    Route::post('/grns' ,'create');
+    Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
+    Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
+    Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
+}); 
 
 Route::controller(StockController::class)->group(function(){
     Route::get('/stocks/{idproduct}/{qty}', 'stockout');

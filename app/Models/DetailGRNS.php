@@ -19,6 +19,7 @@ class DetailGRNS extends Model
         "id_unit",
         "qty",
         "bonusqty",
+        'unitbonusqty',
         "price",
         "total",
         "discount",

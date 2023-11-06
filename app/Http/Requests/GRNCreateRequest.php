@@ -35,7 +35,7 @@ class GRNCreateRequest extends FormRequest
             "items.*.id_unit" => "required" ,
             "items.*.qty" => "required|numeric" ,   
             "items.*.bonusqty" => "nullable|numeric" ,   
-            "items.*.unitbonusqty" => "nullable" ,   
+            "items.*.unitbonusqty" => "required" ,   
             "items.*.price" => "required|numeric" ,
             "items.*.total"=> "required|numeric" ,
             "items.*.discount" => "nullable|numeric" ,

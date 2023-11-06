@@ -86,7 +86,7 @@ class GRNController extends Controller
                 'trans_no', 'id_detail_grns',
                 'id_product', 'barcode',
                 'name', 'brands', 'id_unit',
-                'qty', 'bonusqty','price','total','discount', 'sub_total'
+                'qty', 'bonusqty','unitbonusqty','price','total','discount', 'sub_total'
 
             )->where('branchcode', $branchcode)->where(function($query) use ($id){
                 $query->where('trans_no', $id);
@@ -184,7 +184,6 @@ class GRNController extends Controller
                 $grns->save();
 
                 $items= collect($dataValidated["items"])->transform(function($item) use($grns){
-                    unset($item['unitbonusqty']);
                     return ['id_grns' => intval($grns->id)]+ $item;
                 });
             
@@ -197,12 +196,9 @@ class GRNController extends Controller
                 //menghitung total qty dan bonus
                 foreach($dataValidated['items'] as $item){
                     $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
-                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
+                    $unitbonus = $item['unitbonusqty'];
                     $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
-                    $convert_value_bonus = 1;
-                    if ($unitbonus != null) {
-                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
-                    }
+                    $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
                     $totalQtyTransaction += (intval($item['qty']) * $convert_value);
                     $totalQtyBonusTransaction += (intval($bonusqty) * $convert_value_bonus);
                 }
@@ -210,14 +206,11 @@ class GRNController extends Controller
                 foreach ($dataValidated['items'] as $item) {
                     $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
                     $id_unit = Product::where('id', $item['id_product'])->first(['id_unit'])->id_unit;
+                    $unitbonus = $item['unitbonusqty'];
                     $qty = intval($item['qty']);
                     $total = intval($item['sub_total']);
-                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
                     $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
-                    $convert_value_bonus = 1;
-                    if ($unitbonus != null) {
-                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
-                    }
+                    $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
                     $qtyandbonus = ($qty * $convert_value) + ($bonusqty * $convert_value_bonus);
                     $hpp = round((($total / $qtyandbonus ) + $other_fee_per_item), 6);
                     $checkstock = new StockController();
@@ -236,7 +229,7 @@ class GRNController extends Controller
                     'trans_no', 'id_detail_grns',
                     'id_product', 'barcode',
                     'name', 'brands', 'id_unit',
-                    'qty', 'bonusqty','price','total','discount', 'sub_total'
+                    'qty', 'bonusqty','unitbonusqty','price','total','discount', 'sub_total'
     
                 )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->get();
                 $Cogs = Stock::selectRaw("actual_stock * cogs as cogs")->where("branchcode", $grns->branchcode)->where('ref', $grns->trans_no)->get();
@@ -296,7 +289,6 @@ class GRNController extends Controller
 
                 DetailGRNS::where("id_grns" ,$grns->id)->delete();
                 $items= collect($dataValidated["items"])->transform(function($item) use($grns){
-                    unset($item['unitbonusqty']);
                     return ['id_grns' => intval($grns->id)]+ $item;
                 });
                 DetailGRNS::insert($items->toArray());
@@ -308,12 +300,9 @@ class GRNController extends Controller
                 $other_fee = intval(Purchase::where('id', $grns->id_purchase)->first(['other_fee'])->other_fee);
                 foreach($dataValidated['items'] as $item){
                     $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
-                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
+                    $unitbonus = $item['unitbonusqty'];
                     $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
-                    $convert_value_bonus = 1;
-                    if ($unitbonus != null) {
-                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
-                    }
+                    $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
                     $totalQtyTransaction += (intval($item['qty']) * $convert_value);
                     $totalQtyBonusTransaction += (intval($bonusqty) * $convert_value_bonus);
                 }
@@ -324,12 +313,9 @@ class GRNController extends Controller
                     $id_unit = Product::where('id', $item['id_product'])->first(['id_unit'])->id_unit;
                     $qty = intval($item['qty']);
                     $total = intval($item['sub_total']);
-                    $unitbonus = !empty($item['unitbonusqty']) ? $item['unitbonusqty']: null;
+                    $unitbonus = $item['unitbonusqty'];
                     $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
-                    $convert_value_bonus = 1;
-                    if ($unitbonus != null) {
-                        $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
-                    }
+                    $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
 
                     $qtyandbonus = ($qty * $convert_value) + ($bonusqty * $convert_value_bonus);
                     $hpp = round((($total / $qtyandbonus ) + $other_fee_per_item), 6);
@@ -352,7 +338,7 @@ class GRNController extends Controller
                     'trans_no', 'id_detail_grns',
                     'id_product', 'barcode',
                     'name', 'brands', 'id_unit',
-                    'qty', 'bonusqty','price','total','discount', 'sub_total'
+                    'qty', 'bonusqty','unitbonusqty','price','total','discount', 'sub_total'
     
                 )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->get();
                 
@@ -467,7 +453,7 @@ class GRNController extends Controller
                     'trans_no', 'id_detail_grns',
                     'id_product', 'barcode',
                     'name', 'brands', 'id_unit',
-                    'qty', 'bonusqty','price','total','discount', 'sub_total'
+                    'qty', 'bonusqty','unitbonusqty','price','total','discount', 'sub_total'
     
                 )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->get();
             }
