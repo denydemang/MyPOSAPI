@@ -114,45 +114,41 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     }); 
 
     
+    Route::controller(GRNController::class)->group(function(){
+        Route::get('/grns/list/{branchcode}' ,'getall');
+        Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
+        Route::get('/grns/{branchcode}/search' ,'search');
+        Route::post('/grns' ,'create');
+        Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
+        Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
+        Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
+    }); 
+    Route::controller(UnitController::class)->group(function(){
+        Route::get('/units/list' ,'getall');
+        Route::get('/units/group/{idunit}' ,'getgroup');
+        Route::get('/units/default' ,'getdefault');
+        // Route::get('/units/detail/{branchcode}/{idunitseortrans_no}' ,'get');
+        // Route::get('/units/{branchcode}/search' ,'search');
+        // Route::post('/units' ,'create');
+        // Route::put('/units/{branchcode}/{idunitsortrans_no}' ,'update');
+        // Route::delete('/units/{branchcode}/{idunitsortrans_no}' ,'delete');
+        // Route::patch('/units/{branchcode}/{idunitsortrans_no}' ,'approve');
+    }); 
+    Route::controller(StockController::class)->group(function(){
+        Route::get('/stocks/{idproduct}/{qty}', 'stockout');
+        // Route::get('/sales/list/{branchcode}' ,'getall');
+        // Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
+        // Route::get('/sales/{branchcode}/search' ,'search');
+        // Route::post('/sales' ,'create');
+        // Route::put('/sales/{branchcode}/{idpurchaseortrans_no}' ,'update');
+        // Route::delete('/sales/{branchcode}/{id}' ,'delete');
+        // Route::patch('/sales/{branchcode}/{id}' ,'approve');
+    }); 
 }); 
 
-Route::controller(GRNController::class)->group(function(){
-    Route::get('/grns/list/{branchcode}' ,'getall');
-    Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
-    Route::get('/grns/{branchcode}/search' ,'search');
-    Route::post('/grns' ,'create');
-    Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
-    Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
-    Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
-}); 
-Route::controller(UnitController::class)->group(function(){
-    Route::get('/units/list' ,'getall');
-    Route::get('/units/group/{idunit}' ,'getgroup');
-    Route::get('/units/default' ,'getdefault');
-    // Route::get('/units/detail/{branchcode}/{idunitseortrans_no}' ,'get');
-    // Route::get('/units/{branchcode}/search' ,'search');
-    // Route::post('/units' ,'create');
-    // Route::put('/units/{branchcode}/{idunitsortrans_no}' ,'update');
-    // Route::delete('/units/{branchcode}/{idunitsortrans_no}' ,'delete');
-    // Route::patch('/units/{branchcode}/{idunitsortrans_no}' ,'approve');
-}); 
 Route::controller(UserController::class)->group(function(){
     Route::get('/users/checklogin/{id}/{token}',"checkuserlogin");
 });
 
-Route::controller(StockController::class)->group(function(){
-    Route::get('/stocks/{idproduct}/{qty}', 'stockout');
-    // Route::get('/sales/list/{branchcode}' ,'getall');
-    // Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
-    // Route::get('/sales/{branchcode}/search' ,'search');
-    // Route::post('/sales' ,'create');
-    // Route::put('/sales/{branchcode}/{idpurchaseortrans_no}' ,'update');
-    // Route::delete('/sales/{branchcode}/{id}' ,'delete');
-    // Route::patch('/sales/{branchcode}/{id}' ,'approve');
-}); 
-
-
-
-    
 Route::delete('/users/logout', [UserController::class, 'logout']);
 Route::post('/users/login/{branchcode}' ,[UserController::class, 'login']);
