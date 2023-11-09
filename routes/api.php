@@ -136,6 +136,9 @@ Route::controller(UnitController::class)->group(function(){
     // Route::delete('/units/{branchcode}/{idunitsortrans_no}' ,'delete');
     // Route::patch('/units/{branchcode}/{idunitsortrans_no}' ,'approve');
 }); 
+Route::controller(UserController::class)->group(function(){
+    Route::get('/users/checklogin/{id}/{token}',"checkuserlogin");
+});
 
 Route::controller(StockController::class)->group(function(){
     Route::get('/stocks/{idproduct}/{qty}', 'stockout');

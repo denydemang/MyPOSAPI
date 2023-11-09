@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\remember_token;
 use App\Models\User;
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,8 +33,8 @@ class ApiAuthMiddleware
             $gettoken = remember_token::where("token", $token)->first();
             if ($gettoken) //jika token nya  ada didatabase
             {
-                date_default_timezone_set('Asia/Jakarta');
-                $now = strtotime(date('Y-m-d h:m:s'));
+                $time = Carbon::now('Asia/Jakarta');
+                $now =  strtotime($time->format('d-m-Y H:i:s'));
                 $expired = strtotime(date($gettoken->token_expired));
                 if ( $now >= $expired ){
                     $authenticate = false;

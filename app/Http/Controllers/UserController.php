@@ -11,6 +11,7 @@ use App\Models\CompanyProfile;
 use App\Models\remember_token;
 use App\Models\User;
 use App\Models\UserView;
+use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -369,6 +370,45 @@ class UserController extends Controller
             ],
             "success" => "Successfully Get Encrypted User Password"
         ])->setStatusCode(200);
+    }
+    public function checkuserlogin($id, $token){
+        $invalid = false;
+        try {
+            $user = remember_token::where('id_user', $id)->where('token', $token)->first();
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if ($user) {
+            $time = Carbon::now('Asia/Jakarta');
+            $now =  strtotime($time->format('d-m-Y H:i:s'));
+            $expired = strtotime(date($user->token_expired));
+            if ( $now >= $expired ){
+                $invalid =true;
+            }
+        } 
+        if (!$user){
+            $invalid =true;
+        }
+
+        if ($invalid){
+            return response()->json([
+                'data' => [
+                    'is_login' => false
+                ]
+                ])->setStatusCode(200);
+        } else{
+            return response()->json([
+                'data' => [
+                    'is_login' => true
+                ]
+                ])->setStatusCode(200);
+        }
     }
     
 
