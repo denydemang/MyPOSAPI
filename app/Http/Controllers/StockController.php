@@ -13,7 +13,7 @@ class StockController extends Controller
     public function stockout(int $idproduct, int $qty, string $transno, string $branchcode, string $date):void{
 
         // $Totalcogs = 0; //hpp atau cost of good sold
-        $remaining_stock = ProductView::where('id', $idproduct)->first();
+        $remaining_stock = ProductView::where('branchcode', $branchcode)->where('id', $idproduct)->first();
 
         if (!$remaining_stock){
             throw new Exception('Product Is Not Found');
@@ -22,7 +22,7 @@ class StockController extends Controller
         if(intval($remaining_stock->remaining_stock) < intval($qty)){
             throw new Exception('Insufficient Stock Of Supplies');
         }
-        $stocks = Stock::where("id_product",$idproduct)
+        $stocks = Stock::where('branchcode', $branchcode)->where("id_product",$idproduct)
         ->whereColumn("actual_stock", ">" ,"used_stock")->where('is_approve', 1)->lockForUpdate()->orderBy('date')->orderBy('id')->get();
 
         // return response()->json($stocks);
@@ -66,6 +66,39 @@ class StockController extends Controller
                     }
             }
         }
+    }
+    public function purchasereturn(int $idproduct, int $qty, string $grnno, string  $transno, string $branchcode, string $date)
+    {
+        $stock = Stock::where('branchcode',$branchcode)->where('id_product', $idproduct)->where('ref', $grnno)->lockForUpdate()->first();
+        if (!$stock){
+            throw new Exception('ID Product Not Found');
+        }
+        if (intval($qty) > (intval($stock->actual_stock) - intval($stock->used_stock))){
+            throw new Exception('Exceeds the Amount of Stock Purchased');
+        }
+        $stock->used_stock += $qty;
+        $stock->update();
+        $stockout = new LOGINVOUT([
+            'branchcode' => $branchcode,
+            'ref_no' => $transno,
+            'date' => $date,
+            'id_product'=> $idproduct,
+            'qty' => $qty,
+            'price' => $stock->cogs,
+            'id_stock' => $stock->id
+        ]);
+        $stockout->save();
+    }
+    public function updatepurchasereturn(int $idproduct, int $qty, string $grnno, string  $transno, string $branchcode, string $date)
+    {
+        $stockout = LOGINVOUT::where('branchcode', $branchcode)->where('ref_no', $transno)->get();
+        foreach ($stockout as $item) {
+            $stock = Stock::where('id_product',$stockout->id_product)->where('ref', $grnno)->lockForUpdate()->first();
+            $stock->used_stock -= $item->qty;
+            $stock->update();
+            $item->delete();
+        }
+        $this->purchasereturn($idproduct,$qty, $grnno,$transno,$branchcode, $date);
     }
     public function updatestockout(int $idproduct, int $qty, string $transno, string $branchcode, string $date):void{
         $logstockout = LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->where("id_product", $idproduct)->orderBy('date')->orderBy('id')->get();

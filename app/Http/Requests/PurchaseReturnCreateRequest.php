@@ -13,6 +13,10 @@ class PurchaseReturnCreateRequest extends FormRequest
      *
      * @return bool
      */
+    public function authorize()
+    {
+        return true;
+    }
     public function rules()
     {
         return [
@@ -20,12 +24,9 @@ class PurchaseReturnCreateRequest extends FormRequest
             "trans_date" => "required",
             "id_grn" => "required",
             "reason" => "required",
-            "total" => "required|numeric",
             "items.*.id_product" => "required" ,
             "items.*.id_unit" => "required" ,
             "items.*.qty" => "required|numeric" ,
-            "items.*.cogs" => "required|numeric" ,
-            "items.*.sub_total" => "required|numeric" ,
         ];
     }
     protected function failedValidation(Validator $validator){

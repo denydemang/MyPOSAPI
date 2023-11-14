@@ -1,0 +1,100 @@
+
+# Requirement Rest Client Extension
+# How to use just block the url and right click then choose send request
+# Authorization is token to access api, can inspect in table remember_token
+
+# Get All Purchase Return
+GET http://127.0.0.1:8000/api/purchasereturn/list/int
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+# Get All Purchase Return By Date
+GET http://127.0.0.1:8000/api/purchasereturn/list/int?startdate=2023-12-13&enddate=2023-12-30
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+# Get All Approve Purchase Return
+GET http://127.0.0.1:8000/api/purchasereturn/list/int?isapprove=1
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+
+#Get Specific Purchase Return by id
+GET http://127.0.0.1:8000/api/purchasereturn/detail/int/1
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+#Get Specific Purchase Return by trans_no
+GET http://127.0.0.1:8000/api/purchasereturn/detail/int/prtn_001
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+
+#Get Purchase Return By Key Search (Search key is only for purchase return, grn, and purchase trans_no )
+GET http://127.0.0.1:8000/api/purchasereturn/int/search?key=GRN-2023-11-06-001
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+
+# Create New Transaction Purchase Return
+
+POST http://127.0.0.1:8000/api/purchasereturn HTTP/1.1
+content-type: application/json
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+{
+    "branchcode": "int",
+    "trans_date": "2023-11-14",
+    "id_grn": 29,
+    "reason": "Barang Cacat",
+    "total": "25",
+    "items" :[
+      {
+      "id_product" : 7,
+      "id_unit" : "rim",
+      "qty" : 100,
+      },
+      {
+      "id_product" : 11,
+      "id_unit" : "rim",
+      "qty" : 50,
+      }
+    ]
+}
+
+
+POST http://127.0.0.1:8000/api/purchasereturn
+Content-Type: application/json
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+{
+    "branchcode": "int",
+    "trans_date": "2023-11-14",
+    "id_grn": 29,
+    "reason": "Barang Cacat",
+    "total": "25",
+    "items" :[
+      {
+      "id_product" : 7,
+      "id_unit" : "rim",
+      "qty" : 100,
+      },
+      {
+      "id_product" : 11,
+      "id_unit" : "rim",
+      "qty" : 50,
+      }
+    ]
+}
+
+POST http://127.0.0.1:8000/api/purchasereturn
+Content-Type: application/json
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+
+{
+    "branchcode": "int",
+    "trans_date": "2023-11-14",
+    "id_grn": 29,
+    "reason": "Barang Cacat",
+    "total": "25",
+    "items": [
+        {
+            "id_product": 7,
+            "id_unit": "rim",
+            "qty": 100
+        },
+        {
+            "id_product": 11,
+            "id_unit": "rim",
+            "qty": 50
+        }
+    ]
+}
+
+

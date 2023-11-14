@@ -4,9 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PurchaseReturnCreateRequest;
 use App\Http\Resources\PurchaseReturnResourceCollection;
+use App\Models\DetailPurchase;
 use App\Models\DetailPurchaseReturn;
+use App\Models\GRNSView;
+use App\Models\LOGINVOUT;
+use App\Models\Product;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnView;
+use App\Models\Stock;
+use App\Models\UnitView;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
@@ -39,7 +45,7 @@ class PurchaseReturnController extends Controller
             $purchasereturn =PurchaseReturnView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_grn', 'grn_trans_no' , 
-                'id_purchase' ,'purchase_trans_no','reason', DB::raw('count(trans_no) as total_product'),
+                'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name' ,'reason', DB::raw('count(trans_no) as total_product'),
                 'total', 'is_approve'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -68,7 +74,7 @@ class PurchaseReturnController extends Controller
             $purchase = PurchaseReturnView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_grn', 'grn_trans_no' , 
-                'id_purchase' ,'purchase_trans_no','reason','total', 'is_approve'
+                'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
                     $query->where("trans_no", $id);
@@ -123,7 +129,7 @@ class PurchaseReturnController extends Controller
             $purchasereturn =PurchaseReturnView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_grn', 'grn_trans_no' , 
-                'id_purchase' ,'purchase_trans_no','reason','total', 'is_approve'
+                'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
                 ->when($isapprove, function($query, string $isapprove){
@@ -133,6 +139,7 @@ class PurchaseReturnController extends Controller
                     $query->Where('trans_no', 'like', "%{$key}%");
                     $query->orWhere('grn_trans_no', 'like', "%{$key}%");
                     $query->orWhere('purchase_trans_no', 'like', "%{$key}%");
+                    $query->orWhere('supplier_name', 'like', "%{$key}%");
                 })
                 ->groupBy('trans_no')->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)->paginate(perPage:$perpage, page:$page);
                 $purchasereturn->withPath($request->fullUrl());
@@ -163,23 +170,61 @@ class PurchaseReturnController extends Controller
                     $newCode = "PRTN-{$dateNow}-001";
                 }
 
-                $purchasereturn = new PurchaseReturn();
-                $purchasereturn->branchcode = $dataValidated['branchcode'];
-                $purchasereturn->trans_no = $newCode;
-                $purchasereturn->trans_date = $dataValidated['trans_date'];
-                $purchasereturn->id_grn = $dataValidated['id_grn'];
-                $purchasereturn->reasonn = $dataValidated['reasonn'];
-                $purchasereturn->total = $dataValidated['total'];
-                $purchasereturn->save();
+                $grnno =  GRNSView::where('id',$dataValidated['id_grn'])->first(['trans_no'])->trans_no;
 
-                $items= collect($dataValidated["items"])->transform(function($item) use($purchasereturn){
+                //Take out the amount stock
+                foreach($dataValidated["items"] as $item){
+                    $convert_value = intval(UnitView::where('id_unit', $item['id_unit'])->first(['convert_value'])->convert_value);
+                    $qtyconverted = intval($item['qty']) * intval($convert_value);
+                    $StockController = new StockController;
+                    $StockController->purchasereturn($item['id_product'],$qtyconverted,$grnno,$newCode,$dataValidated['branchcode'], $dataValidated['trans_date']);
+                }
+                // 
+                $pricesubtotal = LOGINVOUT::selectRaw("id_product,qty,price,qty * price as subtotal")->where('branchcode', $dataValidated['branchcode'])->where('ref_no',$newCode)->get();
+                $datadetail = [];
+                foreach($pricesubtotal as $i){
+                    $id_unit = Product::where('id', $i['id_product'])->first(['id_unit'])->id_unit;
+                    $datadetail[] = [
+                        'id_product' => $i['id_product'],
+                        'id_unit' =>$id_unit,
+                        'qty' => $i['qty'],
+                        'cogs' => $i['price'],
+                        'sub_total' => $i['subtotal']
+                    ];
+                
+                }
+                $purchasereturn = new PurchaseReturn([
+                    'branchcode' => $dataValidated['branchcode'],
+                    'trans_no' => $newCode,
+                    'id_grn' => $dataValidated['id_grn'],
+                    'trans_date' => $dataValidated['trans_date'],
+                    'reason' => $dataValidated['reason'],
+                    'total' => round($pricesubtotal->sum('subtotal'), 0),
+                ]);
+                $purchasereturn->save();
+                
+                $datadetail= collect($datadetail)->transform(function($item) use($purchasereturn){
                     return ['id_purchase_return' => intval($purchasereturn->id)]+ $item;
                 });
-                DetailPurchaseReturn::insert($items->toArray());
-                foreach($items as $item){
-                    $StockController = new StockController;
-                    $StockController->stockout($item['id_product'],$item['qty'],$purchasereturn->trans_no,$purchasereturn->branchcode, $purchasereturn->trans_date);
-                }
+
+                DetailPurchaseReturn::insert($datadetail->toArray());  
+                $datapurchasereturn = PurchaseReturnView::select(
+                    'branchcode', 'id' , 'trans_no', 
+                    'trans_date' ,'id_grn', 'grn_trans_no' , 
+                    'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
+                    )
+                    ->where("branchcode", $purchasereturn->branchcode)->where('trans_no',$purchasereturn->trans_no)->first();
+
+                $dataitems = PurchaseReturnView::select(
+                    'branchcode' , 'id',
+                    'trans_no', 'id_detail_purchase_return',
+                    'id_product', 'barcode',
+                    'product_name', 'id_unit',
+                    'qty', 'cogs', 'sub_total'
+    
+                )->where("branchcode", $purchasereturn->branchcode)->where('trans_no',$purchasereturn->trans_no)->get();
+                $Cogs = LOGINVOUT::selectRaw("qty * price as cogs")->where('branchcode', $purchasereturn->branchcode)->where('ref_no',$purchasereturn->trans_no)->get();
+                $totalCogs = round($Cogs->sum('cogs'), 0);
             DB::commit();
             
         } catch (\Throwable $th) {
@@ -197,41 +242,34 @@ class PurchaseReturnController extends Controller
         return response()->json(
             [
                 "data" => [
-                    "purchase" => $purchasereturn,
-                    "items" => $items
+                    "purchase_return" => $datapurchasereturn,
+                    "items" => $dataitems,
+                    "cogs" => $totalCogs
                 ],
                 "success" => "Successfully Saved Purchase Return Transaction"
             ]
         )->setStatusCode(201);
 
     }
-    public function update($branchcode,$key,PurchaseUpdateRequest $request) :JsonResponse
+    public function update($branchcode,$key,PurchaseReturnController $request) :JsonResponse
     {
         $dataValidated = $request->validated();
         try {
-            $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
+            $purchasereturn = PurchaseReturn::where("branchcode", $branchcode)->where(function($query) use($key){
                 $query->where("trans_no", strval($key));
                 $query->orWhere("id", $key);
             })->first();
-            if($purchase){
+            if($purchasereturn){
                 DB::beginTransaction();
                     
-                    $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
+                    $purchasereturn = PurchaseReturn::where("branchcode", $branchcode)->where(function($query) use($key){
                         $query->where("trans_no", $key);
                         $query->orWhere("id", $key);
                     })->lockForUpdate()->first();
-                    $purchase->trans_date = $dataValidated['trans_date'];
-                    $purchase->id_user = $dataValidated['id_user'];
-                    $purchase->id_supplier = $dataValidated['id_supplier'];
-                    $purchase->total = $dataValidated['total'];
-                    $purchase->discount = $dataValidated['discount'];
-                    $purchase->other_fee = $dataValidated['other_fee'];
-                    $purchase->ppn = $dataValidated['ppn'];
-                    $purchase->grand_total = $dataValidated['grand_total'];
-                    $purchase->payment_term = $dataValidated['payment_term'];
-                    $purchase->is_credit = $dataValidated['is_credit'];
-                    $purchase->update();
-                    DetailPurchase::where("id_purchases" ,$purchase->id)
+                    $purchasereturn->trans_date = $dataValidated['trans_date'];
+                    $purchasereturn->reason = $dataValidated['reason'];
+                    $purchasereturn->update();
+                    DetailPurchaseReturn::where("id_purchases_return" ,$purchase->id)
                     ->lockForUpdate()->delete();
                     $items= collect($dataValidated["items"])->transform(function($item) use($purchase){
                         return ['id_purchases' => intval($purchase->id)]+ $item;
@@ -269,80 +307,80 @@ class PurchaseReturnController extends Controller
         ])->setStatusCode(200);
     }
 
-    public function delete($branchcode, $key): JsonResponse
-    {
-        try {
-            $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-                $query->where("trans_no", $key);
-                $query->orWhere("id", $key);
-            })->first();
+    // public function delete($branchcode, $key): JsonResponse
+    // {
+    //     try {
+    //         $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
+    //             $query->where("trans_no", $key);
+    //             $query->orWhere("id", $key);
+    //         })->first();
 
-            if($purchase){  
-                Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-                    $query->where("trans_no", $key);
-                    $query->orWhere("id", $key);
-                })->delete();
-            }
-        } catch (\Throwable $th) {
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        $th->getMessage()
-                    ]
-                ]
-                ],500));
-        }
-        if(!$purchase){
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "ID or No_Trans Is Not Found"
-                    ]
-                ]
-            ],404));
-        }
-        return response()->json([
-            "data" => $purchase,
-            "success" => "Successfully Deleted Purchase Transaction"
-        ])->setStatusCode(200);
-    }
-    public function approve($branchcode, $key){
+    //         if($purchase){  
+    //             Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
+    //                 $query->where("trans_no", $key);
+    //                 $query->orWhere("id", $key);
+    //             })->delete();
+    //         }
+    //     } catch (\Throwable $th) {
+    //         throw new HttpResponseException(response([
+    //             "errors" => [
+    //                 "general" => [
+    //                     $th->getMessage()
+    //                 ]
+    //             ]
+    //             ],500));
+    //     }
+    //     if(!$purchase){
+    //         throw new HttpResponseException(response([
+    //             "errors" => [
+    //                 "general" => [
+    //                     "ID or No_Trans Is Not Found"
+    //                 ]
+    //             ]
+    //         ],404));
+    //     }
+    //     return response()->json([
+    //         "data" => $purchase,
+    //         "success" => "Successfully Deleted Purchase Transaction"
+    //     ])->setStatusCode(200);
+    // }
+    // public function approve($branchcode, $key){
 
-        try {
-            $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
-                $query->where("trans_no", $key);
-                $query->orWhere("id", $key);
-            })->first();
-            if($purchase){
-                $purchase->is_approve = 1;
-                $purchase->update();
-            }
+    //     try {
+    //         $purchase = Purchase::where("branchcode", $branchcode)->where(function($query) use($key){
+    //             $query->where("trans_no", $key);
+    //             $query->orWhere("id", $key);
+    //         })->first();
+    //         if($purchase){
+    //             $purchase->is_approve = 1;
+    //             $purchase->update();
+    //         }
 
-        } catch (\Throwable $th) {
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        $th->getMessage()
-                    ]
-                ]
-                ],500));
-        }
-        if (!$purchase){
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "ID or No_Trans Is Not Found"
-                    ]
-                ]
-            ],404));
-        }
+    //     } catch (\Throwable $th) {
+    //         throw new HttpResponseException(response([
+    //             "errors" => [
+    //                 "general" => [
+    //                     $th->getMessage()
+    //                 ]
+    //             ]
+    //             ],500));
+    //     }
+    //     if (!$purchase){
+    //         throw new HttpResponseException(response([
+    //             "errors" => [
+    //                 "general" => [
+    //                     "ID or No_Trans Is Not Found"
+    //                 ]
+    //             ]
+    //         ],404));
+    //     }
 
-        return response()->json([
-            'data' => [
-                'trans_no' => $purchase->trans_no,
-                'is_approve' => $purchase->is_approve
-            ],
-            "success" => "successfully Approved Transaction"
-            ])->setStatusCode(200);
-    }
+    //     return response()->json([
+    //         'data' => [
+    //             'trans_no' => $purchase->trans_no,
+    //             'is_approve' => $purchase->is_approve
+    //         ],
+    //         "success" => "successfully Approved Transaction"
+    //         ])->setStatusCode(200);
+    // }
 }
