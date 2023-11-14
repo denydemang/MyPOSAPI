@@ -104,13 +104,13 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     }); 
 
     Route::controller(PurchaseReturnController::class)->group(function(){
-        Route::get('/grns/list/{branchcode}' ,'getall');
-        Route::get('/grns/detail/{branchcode}/{idgrnseortrans_no}' ,'get');
-        Route::get('/grns/{branchcode}/search' ,'search');
-        Route::post('/grns' ,'create');
-        Route::put('/grns/{branchcode}/{idgrnsortrans_no}' ,'update');
-        Route::delete('/grns/{branchcode}/{idgrnsortrans_no}' ,'delete');
-        Route::patch('/grns/{branchcode}/{idgrnsortrans_no}' ,'approve');
+        Route::get('/purchasereturn/list/{branchcode}' ,'getall');
+        Route::get('/purchasereturn/detail/{branchcode}/{idpurchasereturneortrans_no}' ,'get');
+        Route::get('/purchasereturn/{branchcode}/search' ,'search');
+        Route::post('/purchasereturn' ,'create');
+        Route::put('/purchasereturn/{branchcode}/{idpurchasereturnortrans_no}' ,'update');
+        Route::delete('/purchasereturn/{branchcode}/{idpurchasereturnortrans_no}' ,'delete');
+        Route::patch('/purchasereturn/{branchcode}/{idpurchasereturnortrans_no}' ,'approve');
     }); 
 
     
@@ -133,6 +133,16 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         // Route::put('/units/{branchcode}/{idunitsortrans_no}' ,'update');
         // Route::delete('/units/{branchcode}/{idunitsortrans_no}' ,'delete');
         // Route::patch('/units/{branchcode}/{idunitsortrans_no}' ,'approve');
+    }); 
+    Route::controller(StockController::class)->group(function(){
+        Route::get('/stocks/{idproduct}/{qty}', 'stockout');
+        // Route::get('/sales/list/{branchcode}' ,'getall');
+        // Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
+        // Route::get('/sales/{branchcode}/search' ,'search');
+        // Route::post('/sales' ,'create');
+        // Route::put('/sales/{branchcode}/{idpurchaseortrans_no}' ,'update');
+        // Route::delete('/sales/{branchcode}/{id}' ,'delete');
+        // Route::patch('/sales/{branchcode}/{id}' ,'approve');
     }); 
     Route::controller(StockController::class)->group(function(){
         Route::get('/stocks/{idproduct}/{qty}', 'stockout');
