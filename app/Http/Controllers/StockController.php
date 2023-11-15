@@ -100,21 +100,21 @@ class StockController extends Controller
         }
         $this->purchasereturn($idproduct,$qty, $grnno,$transno,$branchcode, $date);
     }
-    public function updatestockout(int $idproduct, int $qty, string $transno, string $branchcode, string $date):void{
-        $logstockout = LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->where("id_product", $idproduct)->orderBy('date')->orderBy('id')->get();
+    // public function updatestockout(int $idproduct, int $qty, string $transno, string $branchcode, string $date):void{
+    //     $logstockout = LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->where("id_product", $idproduct)->orderBy('date')->orderBy('id')->get();
 
-        //decrease old qty
-        foreach($logstockout as $log){
-            $stock = Stock::where("id" , $log->id_stock)->lockForUpdate()->first();
-            $stock->used_stock -= $log->qty;
-            $stock->update();
-        }
-        LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->where("id_product", $idproduct)->delete();
+    //     //decrease old qty
+    //     foreach($logstockout as $log){
+    //         $stock = Stock::where("id" , $log->id_stock)->lockForUpdate()->first();
+    //         $stock->used_stock -= $log->qty;
+    //         $stock->update();
+    //     }
+    //     LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->where("id_product", $idproduct)->delete();
 
-        //add back new qty
-        $this->stockout($idproduct,$qty, $transno,$branchcode, $date);
+    //     //add back new qty
+    //     $this->stockout($idproduct,$qty, $transno,$branchcode, $date);
         
-    }
+    // }
     public function revertstockout(string $transno, string $branchcode):void{
         $logstockout = LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->get();
         foreach($logstockout as $log){
@@ -158,9 +158,9 @@ class StockController extends Controller
             $stck->cogs =$dataitem[$counter]['price'] ;
             $stck->id_unit =$dataitem[$counter]['id_unit'] ;
             $stck->update();
-           }
-           $counter++;
-       }
+            }
+            $counter++;
+        }
 
     //    $stock->delete();
 

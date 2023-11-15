@@ -111,9 +111,9 @@ class SalesController extends Controller
         return response()->json([
             'data' => [
                 "sales" => $sales,
-                "item" =>$item
+                "item" =>$item,
+                'total_product' =>$item->count('trans_no'),
             ],
-            'total_product' =>$item->count('trans_no'),
             'success' =>'Successfully Get Specific Sales Transaction'
         ])->setStatusCode(200);
     }
@@ -369,7 +369,7 @@ class SalesController extends Controller
                     "general" => [
                         $th->getMessage()
                     ]
-                ]
+                ]   
                 ],500));
         }
         if (!$sales){
@@ -383,8 +383,10 @@ class SalesController extends Controller
         }
 
         return response()->json([
-            'data' => $sales,
-            "cogs" => $totalCogs,
+            'data' => [
+                "sales" =>$sales,
+                "cogs" => $totalCogs,
+            ],
             "success" => "Successfully Approved Transaction"
             ])->setStatusCode(200);
     }

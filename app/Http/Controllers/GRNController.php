@@ -252,8 +252,8 @@ class GRNController extends Controller
                 "data" => [
                     "grns" => $datagrns,
                     "items" => $dataitem,
+                    "cogs" => $totalCogs,
                 ],
-                "cogs" => $totalCogs,
                 "success" => "Successfully Saved GRNS Transaction"
             ]
         )->setStatusCode(201);
@@ -374,8 +374,8 @@ class GRNController extends Controller
             "data" =>[
                 "grns" => $datagrns,
                 "items" => $dataitem,
+                "cogs" => $totalCogs,
             ],
-            "cogs" => $totalCogs,
             "success" => "Successfully Updated GRNS Transaction"
         ])->setStatusCode(200);
         
@@ -481,8 +481,8 @@ class GRNController extends Controller
             "data" =>[
                 "grns" => $datagrns,
                 "items" => $dataitem,
+                "cogs" => $totalCogs,
             ],
-            "cogs" => $totalCogs,
             "success" => "Successfully Approved GRN Transaction"
             ])->setStatusCode(200);
     }

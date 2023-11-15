@@ -25,54 +25,6 @@ GET http://127.0.0.1:8000/api/purchasereturn/int/search?key=GRN-2023-11-06-001
 Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
 
 # Create New Transaction Purchase Return
-
-POST http://127.0.0.1:8000/api/purchasereturn HTTP/1.1
-content-type: application/json
-Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
-{
-    "branchcode": "int",
-    "trans_date": "2023-11-14",
-    "id_grn": 29,
-    "reason": "Barang Cacat",
-    "total": "25",
-    "items" :[
-      {
-      "id_product" : 7,
-      "id_unit" : "rim",
-      "qty" : 100,
-      },
-      {
-      "id_product" : 11,
-      "id_unit" : "rim",
-      "qty" : 50,
-      }
-    ]
-}
-
-
-POST http://127.0.0.1:8000/api/purchasereturn
-Content-Type: application/json
-Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
-{
-    "branchcode": "int",
-    "trans_date": "2023-11-14",
-    "id_grn": 29,
-    "reason": "Barang Cacat",
-    "total": "25",
-    "items" :[
-      {
-      "id_product" : 7,
-      "id_unit" : "rim",
-      "qty" : 100,
-      },
-      {
-      "id_product" : 11,
-      "id_unit" : "rim",
-      "qty" : 50,
-      }
-    ]
-}
-
 POST http://127.0.0.1:8000/api/purchasereturn
 Content-Type: application/json
 Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
@@ -82,7 +34,6 @@ Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
     "trans_date": "2023-11-14",
     "id_grn": 29,
     "reason": "Barang Cacat",
-    "total": "25",
     "items": [
         {
             "id_product": 7,
@@ -93,6 +44,27 @@ Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
             "id_product": 11,
             "id_unit": "rim",
             "qty": 50
+        }
+    ]
+}
+
+# Update  Transaction Purchase Return
+PUT http://127.0.0.1:8000/api/purchasereturn/int/Psdasda
+Content-Type: application/json
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+
+{
+    "trans_date": "2023-11-15",
+    "items": [
+        {
+            "id_product": 7,
+            "id_unit": "rim",
+            "qty": 25
+        },
+        {
+            "id_product": 11,
+            "id_unit": "rim",
+            "qty": 25
         }
     ]
 }
