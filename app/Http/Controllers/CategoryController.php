@@ -131,7 +131,7 @@ class CategoryController extends Controller
         if ($category) {
             throw new HttpResponseException(response([
                 "errors" => [
-                    "cust_no" => [
+                    "name" => [
                         "Name Already Exists"
                     ]
                 ]
