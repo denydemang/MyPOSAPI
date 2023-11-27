@@ -25,7 +25,8 @@ class ProductController extends Controller
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
         $page = (null != $request->get('page'))? $request->get('page') : 1; 
         try {
-            $value = ProductView::where("branchcode", $keybranch)
+            $value = ProductView::selectRaw("ROW_NUMBER() OVER (ORDER BY products_view.id) AS rownumber,
+            products_view.*")->where("branchcode", $keybranch)
             ->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)
             ->Paginate(perPage:$perpage, page:$page);
             $value->withPath($request->fullUrl());
@@ -132,7 +133,8 @@ class ProductController extends Controller
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
         $page = (null != $request->get('page'))? $request->get('page') : 1; 
 
-        $data = ProductView::where("branchcode", $branchcode)->where(function($query) use ($key){
+        $data = ProductView::selectRaw("ROW_NUMBER() OVER (ORDER BY products_view.id) AS rownumber,
+        products_view.*")->where("branchcode", $branchcode)->where(function($query) use ($key){
             $query->where('barcode', 'like', '%'. $key .'%');
             $query->orwhere('name', 'like', '%'. $key .'%');
             $query->orwhere('brands', 'like', '%'. $key .'%');
