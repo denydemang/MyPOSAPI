@@ -12,15 +12,23 @@ use App\Models\ProductView;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 
 class ProductController extends Controller
 {
-    public function getall($perpage,$keybranch) : ProductResourceCollection
+    public function getall($perpage,$keybranch, Request $request) : ProductResourceCollection
     {
-
+        $tableName = (new ProductView())->getTable();
+        $columlist = Schema::getColumnListing($tableName);
+        $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "id";
+        $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
+        $page = (null != $request->get('page'))? $request->get('page') : 1; 
         try {
-            $value = ProductView::where("branchcode", $keybranch)->Paginate($perpage);
+            $value = ProductView::where("branchcode", $keybranch)
+            ->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)
+            ->Paginate(perPage:$perpage, page:$page);
+            $value->withPath($request->fullUrl());
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -117,7 +125,12 @@ class ProductController extends Controller
     {
 
         $key = $request->get("key");
-        $perpage = $request->get("perpage");
+        $perpage = (null != $request->get("perpage")) ?  $request->get("perpage") : 10;
+        $tableName = (new ProductView())->getTable();
+        $columlist = Schema::getColumnListing($tableName);
+        $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "id";
+        $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
+        $page = (null != $request->get('page'))? $request->get('page') : 1; 
 
         $data = ProductView::where("branchcode", $branchcode)->where(function($query) use ($key){
             $query->where('barcode', 'like', '%'. $key .'%');
@@ -126,8 +139,10 @@ class ProductController extends Controller
             $query->orwhere('price', 'like', '%'. $key .'%');
             $query->orwhere('category', 'like', '%'. $key .'%');
             $query->orwhere('unit', 'like', '%'. $key .'%');
-        })->Paginate($perpage);
-        $data->withPath(URL::to('/').'/api/products/'.$branchcode.'/search?key='.$key.'&perpage='.$perpage);
+        })
+        ->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)
+        ->Paginate(perPage:$perpage, page:$page);
+        $data->withPath($request->fullUrl());
 
         return new ProductResourceCollection($data);
     }
