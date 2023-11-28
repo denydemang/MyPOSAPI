@@ -77,7 +77,6 @@ class ProductController extends Controller
         try {
             $barcode = Product::where("branchcode",$dataValidated['branchcode'])->where(function($query) use($dataValidated){
                 $query->where("barcode",$dataValidated['barcode']);
-                $query->orWhere("name",$dataValidated['name']);
             })->first();
 
             if(!$barcode){
@@ -106,8 +105,8 @@ class ProductController extends Controller
         if ($barcode) {
             throw new HttpResponseException(response([
                 "errors" => [
-                    "general" => [
-                        "Product With That Barcode or Name Already Exists"
+                    "barcode" => [
+                        "Product With That Barcode Already Exists"
                     ]
                 ]
                 ],400));
