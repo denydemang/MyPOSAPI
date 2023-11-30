@@ -127,33 +127,13 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::get('/units/list' ,'getall');
         Route::get('/units/group/{idunit}' ,'getgroup');
         Route::get('/units/default' ,'getdefault');
-        // Route::get('/units/detail/{branchcode}/{idunitseortrans_no}' ,'get');
-        // Route::get('/units/{branchcode}/search' ,'search');
-        // Route::post('/units' ,'create');
-        // Route::put('/units/{branchcode}/{idunitsortrans_no}' ,'update');
-        // Route::delete('/units/{branchcode}/{idunitsortrans_no}' ,'delete');
-        // Route::patch('/units/{branchcode}/{idunitsortrans_no}' ,'approve');
     }); 
     Route::controller(StockController::class)->group(function(){
         Route::get('/stocks/{idproduct}/{qty}', 'stockout');
-        // Route::get('/sales/list/{branchcode}' ,'getall');
-        // Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
-        // Route::get('/sales/{branchcode}/search' ,'search');
-        // Route::post('/sales' ,'create');
-        // Route::put('/sales/{branchcode}/{idpurchaseortrans_no}' ,'update');
-        // Route::delete('/sales/{branchcode}/{id}' ,'delete');
-        // Route::patch('/sales/{branchcode}/{id}' ,'approve');
-    }); 
-    Route::controller(StockController::class)->group(function(){
-        Route::get('/stocks/{idproduct}/{qty}', 'stockout');
-        // Route::get('/sales/list/{branchcode}' ,'getall');
-        // Route::get('/sales/detail/{branchcode}/{idpurchaseortrans_no}' ,'get');
-        // Route::get('/sales/{branchcode}/search' ,'search');
-        // Route::post('/sales' ,'create');
-        // Route::put('/sales/{branchcode}/{idpurchaseortrans_no}' ,'update');
-        // Route::delete('/sales/{branchcode}/{id}' ,'delete');
-        // Route::patch('/sales/{branchcode}/{id}' ,'approve');
-    }); 
+        Route::get('/stocks/initial/{branchcode}/{idproduct}', 'getinitialstock');
+        Route::post('/stocks/initial/create', 'createinitialstock');
+        Route::put('/stocks/initial/{branchcode}/{idproduct}', 'updateinitialstock');
+    });
 }); 
 
 Route::controller(UserController::class)->group(function(){

@@ -114,6 +114,7 @@ class ProductController extends Controller
 
         return response()->json([
             "data" => [
+                "id" => $data->id,
                 "barcode" => $data->barcode,
                 "name" => $data->name,
             ],

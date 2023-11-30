@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\InitialStockCreateRequest;
+use App\Http\Requests\InitialStockUpdateRequest;
 use App\Models\LOGINVOUT;
 use App\Models\ProductView;
 use App\Models\Stock;
 use Exception;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class StockController extends Controller
@@ -125,7 +129,7 @@ class StockController extends Controller
         LOGINVOUT::where("branchcode", $branchcode)->where("ref_no", $transno)->delete();
     }
 
-    public function stockin(int $idproduct, int $qty, string $trans_no ,string $date, string $branchcode ,string $idunit,float $price):void{
+    public function stockin(int $idproduct, int $qty, string $trans_no ,string $date, string $branchcode ,string $idunit,float $price, $isapprove= 0):void{
 
         $stock = new Stock();
         $stock->branchcode = $branchcode;
@@ -136,6 +140,7 @@ class StockController extends Controller
         $stock->used_stock = 0;
         $stock->cogs = $price;
         $stock->id_unit =$idunit;
+        $stock->is_approve = $isapprove;
         $stock->save();
 
     }
@@ -161,10 +166,95 @@ class StockController extends Controller
             }
             $counter++;
         }
-
-    //    $stock->delete();
-
-    //    $this->stockin($idproduct,$qty,$trans_no,$date,$branchcode,$idunit,$price);
         
     }
+    public function createinitialstock(InitialStockCreateRequest $request) :JsonResponse {
+        $dataValidated = $request->validated();
+
+        try {
+            $getinitialstock = Stock::where('branchcode', $dataValidated['branchcode'])->where('ref','Initial Stock')->where('id_product',$dataValidated['id_product'])->first();
+            if(!$getinitialstock){
+                $this->stockin($dataValidated['id_product'], $dataValidated['initialstock'], 'Initial Stock', $dataValidated['date'], $dataValidated['branchcode'],$dataValidated['id_unit'], $dataValidated['buyprice'], 1);
+            };
+        
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if ($getinitialstock) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "Product Already Has Initial Stock, Choose Update Instead"
+                    ]
+                ]
+                ],400));
+        }
+        return response()->json([
+            'success' => 'Successfully Created Initial Stock'
+        ])->setStatusCode(200);
+    }
+    public function updateinitialstock($branchcode,$idproduct,InitialStockUpdateRequest $request) :JsonResponse {
+
+
+        $dataValidated = $request->validated();
+        try {
+            //code...
+            $getinitialstock = Stock::where('branchcode', $branchcode)->where('ref','Initial Stock')->where('id_product',$idproduct)->first();
+            if($getinitialstock){
+                $getinitialstock->actual_stock = $dataValidated['initialstock'];
+                $getinitialstock->id_unit = $dataValidated['id_unit'];
+                $getinitialstock->cogs = $dataValidated['buyprice'];
+                $getinitialstock->update();
+            }
+        } catch (\Throwable $th) {
+            //throw $th;
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+
+        if(!$getinitialstock){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "Product Not Found"
+                    ]
+                ]
+                ],404));
+        }
+        return response()->json([
+            "success" => "Successfully Updated Initial Stock"
+        ])->setStatusCode(200);
+
+    }
+    public function getinitialstock($branchcode,$idproduct) :JsonResponse {
+        try {
+            //code...
+            $getinitialstock = Stock::where('branchcode', $branchcode)->where('ref','Initial Stock')->where('id_product',$idproduct)->first();
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        return response()->json([
+            "data" => $getinitialstock,
+            "success" => "Successfully Updated Initial Stock"
+        ])->setStatusCode(200);
+    }
+    
+
 }
