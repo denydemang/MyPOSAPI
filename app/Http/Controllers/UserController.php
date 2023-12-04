@@ -128,7 +128,7 @@ class UserController extends Controller
     {
         $branchcode = $request->input('branchcode');
         $isactive = $request->input('isactive');
-
+        $perpage = $request->input('perpage') ?  $request->input('perpage') : 10;
         if(!$branchcode){
             throw new HttpResponseException(response([
                 "errors" => [
@@ -138,13 +138,16 @@ class UserController extends Controller
                 ]
                 ],401));
         } else {
-
+            $checks ="";
             try {
-                $data = UserView::where('branchcode', $branchcode)->when($isactive, function($query, string $isactive){
+                $data = UserView::where('branchcode', $branchcode)
+                ->when($isactive !== null, function($query) use ($isactive){
                     $query->where('active', filter_var($isactive, FILTER_VALIDATE_BOOLEAN));
-                })->get()->makeHidden(["token","password","created_at","updated_at"]);
+
+                })
+                ->paginate($perpage);
                 $data = [
-                    "data" => $data->collect(),
+                    "data" => $data,
                     "success" => "Successfully Get Data"
                 ];
                 return response()->json($data)->setStatusCode(200);

@@ -46,13 +46,13 @@ class PurchaseController extends Controller
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
-                ->when($iscredit, function($query, string $iscredit){
+                ->when($iscredit !== null, function($query) use($iscredit){
                     $query->where('is_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isapprove, function($query, string $isapprove){
+                ->when($isapprove !== null, function($query) use($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isreceived, function($query, string $isreceived){
+                ->when($isreceived !== null, function($query) use($isreceived){
                     $query->where('is_received', filter_var($isreceived, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->groupBy('trans_no')
@@ -143,13 +143,13 @@ class PurchaseController extends Controller
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
-                ->when($iscredit, function($query, string $iscredit){
+                ->when($iscredit !== null, function($query) use($iscredit){
                     $query->where('is_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isapprove, function($query, string $isapprove){
+                ->when($isapprove !== null, function($query) use($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isreceived, function($query, string $isreceived){
+                ->when($isreceived !== null, function($query) use($isreceived){
                     $query->where('is_received', filter_var($isreceived, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->where(function($query) use ($key){

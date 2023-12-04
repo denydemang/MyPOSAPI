@@ -49,10 +49,10 @@ class SalesController extends Controller
                 'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
-                ->when($iscredit, function($query, string $iscredit){
+                ->when($iscredit, function($query) use($iscredit){
                     $query->where('is_sales_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isapprove, function($query, string $isapprove){
+                ->when($isapprove, function($query) use($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->groupBy('trans_no')
@@ -142,10 +142,10 @@ class SalesController extends Controller
                 'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
-                ->when($iscredit, function($query, string $iscredit){
+                ->when($iscredit, function($query) use($iscredit){
                     $query->where('is_sales_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isapprove, function($query, string $isapprove){
+                ->when($isapprove, function($query) use($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->where(function($query) use ($key){

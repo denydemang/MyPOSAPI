@@ -46,7 +46,7 @@ class GRNController extends Controller
                 'description', 'total_purchase','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
                 )->where("branchcode", $branchcode)
                 ->whereBetween("received_date", [$startdate,$enddate])
-                ->when($isapprove, function($query, string $isapprove){
+                ->when($isapprove !== null, function($query) use($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->groupBy('trans_no')
@@ -132,7 +132,7 @@ class GRNController extends Controller
                 'description', 'total_purchase','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
                 )->where("branchcode", $branchcode)
                 ->whereBetween("received_date", [$startdate,$enddate])
-                ->when($isapprove, function($query, string $isapprove){
+                ->when($isapprove !== null, function($query) use ($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->where(function($query) use ($key){

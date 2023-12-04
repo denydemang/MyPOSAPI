@@ -133,7 +133,7 @@ class PurchaseReturnController extends Controller
                 'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
-                ->when($isapprove, function($query, string $isapprove){
+                ->when($isapprove !== null, function($query) use ($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->where(function($query) use ($key){
