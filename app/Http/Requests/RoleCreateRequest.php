@@ -2,11 +2,12 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Contracts\Validation\Validator as ValidationValidator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Validator;
 
-class UserUpdateRequest extends FormRequest
+class RoleCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,15 +28,10 @@ class UserUpdateRequest extends FormRequest
     {
         return [
             "name" => "required",
-            "id_role" => "required",
-            "password" => "nullable|max:60"
+            "branchcode" => "required"
         ];
-        
     }
-    protected function failedValidation(Validator $validator){
-        throw new HttpResponseException(response(
-            ["errors" => $validator->getMessageBag()],
-            
-            400));
+    protected function failedValidation(ValidationValidator $validator){
+        throw new HttpResponseException(response(["errors" => $validator->getMessageBag()],400));
     }
 }

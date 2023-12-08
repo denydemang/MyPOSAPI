@@ -7,6 +7,7 @@ use App\Http\Controllers\GRNController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseReturnController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
@@ -30,8 +31,9 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     
     Route::controller(UserController::class)->group(function(){
         Route::get("/users/password/{id}", "getPasswordUser");
+        Route::get('/users/search', "search");
         Route::get('/users/{id}', "get");
-        Route::delete('/users/delete/{id}', 'delete');
+        Route::delete('/users/{id}', 'delete');
         Route::get('/users' ,'getall');    
         Route::post('/users' ,'register');
         Route::put("/users/{id}", "update");
@@ -40,7 +42,9 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
         Route::get('/users/checkcompany/{id}',"checkcompany");
     });
     
-    
+    Route::controller(RoleController::class)->group(function(){
+        Route::get("/roles/{branchcode}", "getall");
+    });
     Route::controller(ProductController::class)->group(function(){
         Route::post('/products' ,'create');
         Route::get('/products/{branchcode}/search' ,'search');

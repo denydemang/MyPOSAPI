@@ -15,8 +15,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -88,6 +86,51 @@ class UserController extends Controller
         }
         return new UserResource($user, "User Login Successfully", $remember_token->token);
     }
+    public function search (Request $request) : JsonResponse {
+        $branchcode = $request->get('branchcode');
+        $isactive = $request->get('isactive');
+        $key = $request->get('key') ?  $request->get('key') : '';
+        $perpage = $request->get('perpage') ?  $request->get('perpage') : 10;
+
+        if(!$branchcode){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "Must Input Parameter BranchCode" 
+                    ]
+                ]
+                ],401));
+        } else {
+            try {
+                $data = UserView::where('branchcode', $branchcode)
+                ->when($isactive !== null, function($query) use ($isactive){
+                    $query->where('active', filter_var($isactive, FILTER_VALIDATE_BOOLEAN));
+
+                })->where(function($query) use ($key){
+                    $query->where('username' , 'like', '%'.$key.'%');
+                    $query->orWhere('name' , 'like', '%'. $key .'%');
+                    $query->orWhere('role' , 'like', '%' .$key .'%');
+                })
+                ->paginate($perpage);
+                $data = [
+                    "data" => $data,
+                    "success" => "Successfully Get Data By Search"
+                ];
+                return response()->json($data)->setStatusCode(200);
+            } catch (\Throwable $th) {
+                throw new HttpResponseException(response([
+                    "errors" => [
+                        "general" => [
+                            $th->getMessage()
+                        ]
+                    ]
+                    ],500));
+            }
+        }
+
+
+
+    }
     public function logout(Request $request) :JsonResponse
     {
         date_default_timezone_set('Asia/Jakarta');
@@ -138,7 +181,6 @@ class UserController extends Controller
                 ]
                 ],401));
         } else {
-            $checks ="";
             try {
                 $data = UserView::where('branchcode', $branchcode)
                 ->when($isactive !== null, function($query) use ($isactive){
@@ -200,6 +242,25 @@ class UserController extends Controller
         
         try {
             $user = User::where("id", $key)->orWhere("username",$key)->first();
+            if ($user){
+                User::where("id", $key)->orWhere("username",$key)->delete();
+                return response()->json([
+                    "data" => [
+                        "id" => $user->id,
+                        "username" => $user->username,
+                        "name" => $user->name
+                    ],
+                    "success" => "User Successfully Deleted"
+                ]);
+            } else{
+                throw new HttpResponseException(response([
+                    "errors" => [
+                        "general" => [
+                            "User Not Found"
+                        ]
+                    ]
+                    ],404));
+            }
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -208,25 +269,6 @@ class UserController extends Controller
                     ]
                 ]
                 ],500));
-        }
-        if ($user){
-            User::where("id", $key)->orWhere("username",$key)->delete();
-            return response()->json([
-                "data" => [
-                    "id" => $user->id,
-                    "username" => $user->username,
-                    "name" => $user->name
-                ],
-                "success" => "User Successfully Deleted"
-            ]);
-        } else{
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "User Not Found"
-                    ]
-                ]
-                ],404));
         }
     
     }
@@ -250,16 +292,13 @@ class UserController extends Controller
         if($user->id_role != $dataValidated["id_role"]) {
             $user->id_role = $dataValidated["id_role"];
         }
-        // $user->username = $dataValidated["username"];
-        if(!empty($dataValidated["password"])) {
-            $pwcheck =true;
+        if(!empty($dataValidated["password"]) ||$dataValidated["password"] != null ) {
             if(!hash::check($dataValidated["password"],$user->password ))
             {
                 
                 $user->password = hash::make($dataValidated["password"]);
             }
         }
-        // $user->id_role = $dataValidated["id_role"]
         $user->update();
         return response()->json([
             "data" => [
