@@ -351,7 +351,21 @@ class UserController extends Controller
         
     }
     public function deactivate($id){
-        $user = User::where("id", $id)->first();
+        try {
+            $user = User::where("id", $id)->first();
+            if ($user){
+                $user->active =0;
+                $user->update();
+            }
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
         if (!$user){
             throw new HttpResponseException(response([
                 "errors" => [
@@ -361,8 +375,6 @@ class UserController extends Controller
                 ]
                 ],404));
         }
-        $user->active =0;
-        $user->update();
         return response()->json([
             "data" => [
                 "id" => $user->id,
@@ -372,7 +384,24 @@ class UserController extends Controller
         ])->setStatusCode(200);
     }
     public function activate($id){
-        $user = User::where("id", $id)->first();
+
+        try {
+            $user = User::where("id", $id)->first();
+            if ($user){
+                $user->active =1;
+                $user->update();
+            }
+            //code...
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+      
         if (!$user){
             throw new HttpResponseException(response([
                 "errors" => [
@@ -382,8 +411,7 @@ class UserController extends Controller
                 ]
                 ],404));
         }
-        $user->active =1;
-        $user->update();
+       
         return response()->json([
             "data" => [
                 "id" => $user->id,
