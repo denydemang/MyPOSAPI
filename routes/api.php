@@ -14,6 +14,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\ApiAuthMiddleware;
+use App\Http\Middleware\ApiAuthUserMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,16 +31,19 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(ApiAuthMiddleware::class)->group(function(){
     
     Route::controller(UserController::class)->group(function(){
-        Route::get("/users/password/{id}", "getPasswordUser");
-        Route::get('/users/search', "search");
-        Route::get('/users/{id}', "get");
-        Route::delete('/users/{id}', 'delete');
-        Route::get('/users' ,'getall');    
-        Route::post('/users' ,'register');
-        Route::put("/users/{id}", "update");
-        Route::patch("/users/deactivate/{id}", "deactivate");
-        Route::patch("/users/activate/{id}", "activate");
-        Route::get('/users/checkcompany/{id}',"checkcompany");
+
+        Route::middleware(ApiAuthUserMiddleware::class)->group(function(){
+            Route::get("/users/password/{id}", "getPasswordUser");
+            Route::get('/users/search', "search");
+            Route::get('/users/{id}', "get");
+            Route::delete('/users/{id}', 'delete');
+            Route::get('/users' ,'getall');    
+            Route::post('/users' ,'register');
+            Route::put("/users/{id}", "update");
+            Route::patch("/users/deactivate/{id}", "deactivate");
+            Route::patch("/users/activate/{id}", "activate");
+            Route::get('/users/checkcompany/{id}',"checkcompany");
+        });
     });
     
     Route::controller(RoleController::class)->group(function(){
