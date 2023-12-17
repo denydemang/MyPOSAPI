@@ -137,7 +137,7 @@ class UserController extends Controller
 
         try {
             remember_token::where("token_expired" , "<=" ,date('Y-m-d h:m:s'))->delete();
-            $token = $request->input("token");
+            $token = $request->get("token");
             $gettoken = remember_token::where("token", $token)->first();
             if($gettoken){
 

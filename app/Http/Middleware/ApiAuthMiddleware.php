@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class ApiAuthMiddleware
 {
@@ -20,6 +21,7 @@ class ApiAuthMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
+        // return response()->json(Hash::make("admin"));
         date_default_timezone_set('Asia/Jakarta');
         $token = $request->header('Authorization'); //get token dari header
         $authenticate =true; //status authentikasi
