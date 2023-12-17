@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\Validator as ValidationValidator;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Support\Facades\Validator;
 
 class RoleCreateRequest extends FormRequest
 {
@@ -27,11 +26,17 @@ class RoleCreateRequest extends FormRequest
     public function rules()
     {
         return [
+            "branchcode" => "required",
             "name" => "required",
-            "branchcode" => "required"
+            "access.*.id_module" => "required",
+            "access.*.xView" =>  "required",
+            "access.*.xUpdate" =>  "required",
+            "access.*.xDelete" =>  "required",
+            "access.*.xApprove" =>  "required",
+            "access.*.xCreate" =>  "required",
         ];
     }
-    protected function failedValidation(ValidationValidator $validator){
+    protected function failedValidation(Validator $validator){
         throw new HttpResponseException(response(["errors" => $validator->getMessageBag()],400));
     }
 }

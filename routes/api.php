@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\GRNController;
+use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseReturnController;
@@ -50,7 +51,6 @@ Route::controller(RoleController::class)->group(function(){
 });
     
 Route::middleware(ApiAuthMiddleware::class)->group(function(){
-    
     Route::middleware(ApiAuthUserMiddleware::class)->group(function(){
         Route::controller(UserController::class)->group(function(){
             Route::get('/users' ,'getall');    
@@ -67,8 +67,11 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     });
     Route::middleware(ApiAuthRoleMiddleware::class)->group(function(){
         Route::controller(RoleController::class)->group(function(){
-            Route::get("/roles/{branchcode}/{id_role}", "get");
-            Route::get("/roles/{branchcode}", "getall");
+            Route::get("/roles/list/{branchcode}", "getall");
+            Route::get("/roles/detail/{branchcode}/{id_role}", "get");
+            Route::post("/roles", "create");
+            Route::put("/roles/{branchcode}/{id_role}", "update");
+            Route::delete("/roles/{branchcode}/{id_role}", "delete");
         });
     });
     Route:: middleware(ApiAuthProductMiddleware::class)->group(function(){
@@ -121,6 +124,9 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
             Route::post('/categories' ,'create');
             Route::delete('/categories/{id}' ,'delete');
         }); 
+    });
+    Route::controller(ModuleController::class)->group(function(){
+        Route::get('/modules/list', 'getall');
     });
     Route::middleware(ApiAuthSalesMiddleware::class)->group(function(){
         Route::controller(SalesController::class)->group(function(){

@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class RoleUpdateRequest extends FormRequest
 {
@@ -13,7 +15,7 @@ class RoleUpdateRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +26,16 @@ class RoleUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            "name" => "required",
+            "access.*.id_module" => "required",
+            "access.*.xView" =>  "required",
+            "access.*.xUpdate" =>  "required",
+            "access.*.xDelete" =>  "required",
+            "access.*.xApprove" =>  "required",
+            "access.*.xCreate" =>  "required",
         ];
+    }
+    protected function failedValidation(Validator $validator){
+        throw new HttpResponseException(response(["errors" => $validator->getMessageBag()],400));
     }
 }

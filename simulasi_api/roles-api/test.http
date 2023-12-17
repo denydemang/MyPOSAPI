@@ -1,0 +1,19 @@
+# Requirement Rest Client Extension
+# How to use just block the url and right click then choose send request
+# Authorization is token to access api, can inspect in table remember_token
+
+#Get All Roles
+GET http://127.0.0.1:8000/api/roles/list/int
+Authorization: 754c9521-4d94-40b5-96ac-90baab88b549
+#Get Detail Roles
+GET http://127.0.0.1:8000/api/roles/detail/int/1
+Authorization: 754c9521-4d94-40b5-96ac-90baab88b549
+#Create Roles
+POST http://127.0.0.1:8000/api/roles
+Content-Type: application/json
+Authorization: 754c9521-4d94-40b5-96ac-90baab88b549
+
+{
+    "branchcode" : "int",
+    "name" : "Cashier"
+}
