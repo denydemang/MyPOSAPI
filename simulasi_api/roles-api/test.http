@@ -15,5 +15,38 @@ Authorization: 754c9521-4d94-40b5-96ac-90baab88b549
 
 {
     "branchcode" : "int",
-    "name" : "Cashier"
+    "name" : "Test",
+    "access" : [
+      {
+        "id_module" : 1,
+        "xView" : 1,
+        "xUpdate" : 1,
+        "xDelete" : 1,
+        "xApprove": 1,
+        "xCreate" : 0
+      }
+    ]
 }
+
+#Update Roles
+PUT http://127.0.0.1:8000/api/roles/int/10
+Content-Type: application/json
+Authorization: 754c9521-4d94-40b5-96ac-90baab88b549
+
+{
+    "branchcode" : "int",
+    "name" : "uhuy",
+    "access" : [
+      {
+        "id_module" : 1,
+        "xView" : 1,
+        "xUpdate" : 1,
+        "xDelete" : 1,
+        "xApprove": 1,
+        "xCreate" : 0
+      }
+    ]
+}
+
+DELETE http://127.0.0.1:8000/api/roles/int/10
+Authorization: 754c9521-4d94-40b5-96ac-90baab88b549

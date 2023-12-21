@@ -1,0 +1,7 @@
+# Requirement Rest Client Extension
+# How to use just block the url and right click then choose send request
+# Authorization is token to access api, can inspect in table remember_token
+
+#GET All Modules
+GET http://127.0.0.1:8000/api/modules/list
+Authorization: 754c9521-4d94-40b5-96ac-90baab88b549
