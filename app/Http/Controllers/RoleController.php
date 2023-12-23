@@ -42,16 +42,18 @@ class RoleController extends Controller
                 $query->where("id", $id_role);
                 $query->orWhere("name", $id_role);
             })->first();
-            $accessview = AccessView::where('branchcode',$branchcode)->where(function($query) use($id_role){
-                $query->where("id_role", $id_role);
-                $query->orWhere("role_name", $id_role);
-            })->groupBy('id_module')->get()->setVisible(['id_module', 'module_name', 'module_sub_name', 'xView', 'xApprove', 'xCreate', 'xDelete', 'xUpdate']);
-            $data = [
-                'branchcode' => $role['branchcode'],
-                'id' => $role['id'],
-                'name' => $role['name'],
-                'access' => $accessview
-            ];
+            if ($role) {
+                $accessview = AccessView::where('branchcode',$branchcode)->where(function($query) use($id_role){
+                    $query->where("id_role", $id_role);
+                    $query->orWhere("role_name", $id_role);
+                })->groupBy('id_module')->orderBy("id_module")->get()->setVisible(['id_module', 'module_name', 'module_sub_name', 'xView', 'xApprove', 'xCreate', 'xDelete', 'xUpdate']);
+                $data = [
+                    'branchcode' => $role['branchcode'],
+                    'id' => $role['id'],
+                    'name' => $role['name'],
+                    'access' => $accessview
+                ];
+            }
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -60,6 +62,15 @@ class RoleController extends Controller
                     ]
                 ]
                 ],500));
+        }
+        if (!$role) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                       "ID Role Not Found"
+                    ]
+                ]
+                ],404));
         }
         return new RoleDetailResource($data, "Successfully Get Data Role");
     }
