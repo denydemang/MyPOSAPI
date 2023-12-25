@@ -42,7 +42,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name','total_purchase', DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'number_id_supplier','supplier_name','total_purchase', DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -81,7 +81,7 @@ class PurchaseController extends Controller
             $purchase = PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name','total_purchase', 'other_fee', 'ppn',
+                'id_supplier' ,'number_id_supplier','supplier_name','total_purchase', 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
@@ -139,7 +139,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'supplier_name', 'total_purchase',DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'number_id_supplier','supplier_name', 'total_purchase',DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -155,6 +155,7 @@ class PurchaseController extends Controller
                 ->where(function($query) use ($key){
                     $query->Where('trans_no', 'like', "%{$key}%");
                     $query->orWhere('pic_name', 'like', "%{$key}%");
+                    $query->orWhere('number_id_supplier', 'like', "%{$key}%");
                     $query->orWhere('supplier_name', 'like', "%{$key}%");
                 })
                 ->groupBy('trans_no')->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)->paginate(perPage:$perpage, page:$page);

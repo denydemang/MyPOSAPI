@@ -27,9 +27,10 @@ class SupplierCreateRequest extends FormRequest
     {
         return [
             "branchcode" =>"required",
+            "number_id" =>"nullable",
             "name" => "required",
-            "address" => "required",
-            "contact" => "required",
+            "address" => "nullable",
+            "contact" => "nullable",
         ];
     }
     protected function failedValidation(Validator $validator){

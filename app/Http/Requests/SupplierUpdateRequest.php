@@ -26,10 +26,10 @@ class SupplierUpdateRequest extends FormRequest
     public function rules()
     {
         return [
+            'number_id' => "required",
             "name" => "required",
-            "address" => "required",
-            "contact" => "required",
-            "active" => "required"
+            "address" => "nullable",
+            "contact" => "nullable",
         ];
     }
     protected function failedValidation(Validator $validator){

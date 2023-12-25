@@ -25,6 +25,7 @@ class SupplierDetailResource extends JsonResource
             "data" =>  [
                 "branchcode" =>$this->resource->branchcode,
                 "id" =>$this->resource->id,
+                "number_id" =>$this->resource->number_id,
                 "name" =>$this->resource->name,
                 "address" =>$this->resource->address,
                 "contact" =>$this->resource->contact,

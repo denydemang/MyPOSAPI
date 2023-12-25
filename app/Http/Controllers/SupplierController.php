@@ -10,12 +10,14 @@ use App\Models\Supplier;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
 class SupplierController extends Controller
 {
-    public function getall($perpage, $branchcode) : SupplierResourceCollection
+    public function getall($branchcode, Request $request) : SupplierResourceCollection
     {
+        $perpage = $request->get("perpage") ? $request->get("perpage")  : 10;
         try {
             $data = Supplier::where("branchcode" , $branchcode)->where("active", 1)->Paginate($perpage);
         } catch (\Throwable $th) {
@@ -63,8 +65,9 @@ class SupplierController extends Controller
         try {
             $data = Supplier::where('branchcode', $branchcode)->where("active", 1)->where(function($query) use($key){
                 $query->where('name', 'like', '%'. $key .'%');
-                $query->orwhere('address', 'like', '%'. $key .'%');
-                $query->orwhere('contact', 'like', '%'. $key .'%');
+                $query->orWhere('address', 'like', '%'. $key .'%');
+                $query->orWhere('number_id', 'like', '%'. $key .'%');
+                $query->orWhere('contact', 'like', '%'. $key .'%');
             })->Paginate($perpage);
             $data->withPath(URL::to('/').'/api/supplier/'.$branchcode.'/search?key='.$key.'&perpage='.$perpage);
 
@@ -81,20 +84,35 @@ class SupplierController extends Controller
         return new SupplierResourceCollection($data);
     }
 
-    public function update($id ,SupplierUpdateRequest $request) :JsonResponse
+    public function update($branchcode,$id ,SupplierUpdateRequest $request) :JsonResponse
     {
 
         $dataValidated = $request->validated();
-
+        
         try {
             $data = Supplier::where("id", $id)->first();
+            $number_id = null;
+            $name = null;
             if ($data) {
-                $data->name =$dataValidated["name"];
-                $data->address =$dataValidated["address"];
-                $data->contact =$dataValidated["contact"];
-                $data->active =$dataValidated["active"];
+                if ($data->number_id != $dataValidated["number_id"]){
+                    $number_id = Supplier::where("branchcode", $branchcode)->where("number_id", $dataValidated["number_id"])->first();
+                    if(!$number_id){
+                        $data->number_id = $dataValidated["number_id"];
+                    } 
+                } 
+                if ($data->name != $dataValidated["name"]){
+                    $name = Supplier::where("branchcode", $branchcode)->where("name", $dataValidated["name"])->first();
+                    if(!$name){
+                        $data->name = $dataValidated["name"];
+                    } 
+                } 
+                if(!$name && !$number_id){
+                    $data->address = $dataValidated["address"];
+                    $data->contact = $dataValidated["contact"];
+                    $data->update();
+                }
 
-                $data->update();
+            
             }
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
@@ -115,10 +133,29 @@ class SupplierController extends Controller
                 ]
                 ],404));
         }
+        if($number_id ){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "number_id" => [
+                        "Number Id Already Exists"
+                    ]
+                ]
+                ],400));
+        }
+        if($name ){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "name" => [
+                        "Name Already Exists"
+                    ]
+                ]
+                ],400));
+        }
 
         return response()->json([
             "data" => [
                 "id" => $data->id,
+                "number_id" => $data->number_id,
                 "name" => $data->name,
             ],
             "success" => "Successfully Updated Supplier"
@@ -131,18 +168,48 @@ class SupplierController extends Controller
     {
         $dataValidated = $request->validated();
         try {
-            $name = Supplier::where("name", $dataValidated['name'])->first();
+            $name = Supplier::where("branchcode", $dataValidated['branchcode'])->where("name",  $dataValidated["name"])->first();
+            $number_id  = null;
             if(!$name){
+                DB::beginTransaction();
                 $data  = new Supplier();
-                $data->branchcode = $dataValidated['branchcode'];
-                $data->name =$dataValidated['name'];
-                $data->address =$dataValidated['address'];
-                $data->contact =$dataValidated['contact'];
-                $data->active = 1;
-    
-                $data->save();
+                if ($dataValidated["number_id"]){
+                    $number_id = Supplier::where("branchcode", $dataValidated['branchcode'])->where("number_id",  $dataValidated["number_id"])->first();
+                    if(!$number_id){
+                        $data->number_id = $dataValidated["number_id"];
+                        $data->branchcode = $dataValidated['branchcode'];
+                        $data->name =$dataValidated['name'];
+                        $data->address =$dataValidated['address'];
+                        $data->contact =$dataValidated['contact'];
+                        $data->active = 1;
+            
+                        $data->save();
+                    }
+                    
+                } else {
+                    $newCodeSupp="";
+                    $getNumberID = Supplier::select('number_id')->where("branchcode", $dataValidated["branchcode"])->where("number_id","like", "Supp_%")->orderBy("number_id", "desc")->first();
+                    if ($getNumberID){
+                        $getLockMax = Supplier::select('number_id')->where("branchcode", $dataValidated["branchcode"])->where("number_id", ">=", $getNumberID->number_id)->lockForUpdate()->orderBy("number_id", "desc")->first();
+                        $getLastDigit = intval(str_replace("supp_","",$getLockMax->number_id));
+                        $newCodeSupp  = "supp_". sprintf("%03d",$getLastDigit + 1);
+                    } else {
+                        $newCodeSupp  = "supp_001";
+                    }
+                    $data->number_id = $newCodeSupp;
+                    $data->branchcode = $dataValidated['branchcode'];
+                    $data->name =$dataValidated['name'];
+                    $data->address =$dataValidated['address'];
+                    $data->contact =$dataValidated['contact'];
+                    $data->active = 1;
+        
+                    $data->save();
+
+                }
+                DB::commit();
             }
         } catch (\Throwable $th) {
+            DB::rollBack();
             throw new HttpResponseException(response([
                 "errors" => [
                     "general" => [
@@ -154,8 +221,17 @@ class SupplierController extends Controller
         if ($name){
             throw new HttpResponseException(response([
                 "errors" => [
-                    "general" => [
+                    "name" => [
                         "Name Already Exists"
+                    ]
+                ]
+                ],400));
+        }
+        if ($number_id){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "number_id" => [
+                        "Number Id Already Exists"
                     ]
                 ]
                 ],400));

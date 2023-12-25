@@ -46,7 +46,7 @@ class PurchaseReturnController extends Controller
             $purchasereturn =PurchaseReturnView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_grn', 'grn_trans_no' , 
-                'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name' ,'reason', DB::raw('count(trans_no) as total_product'),
+                'id_purchase' ,'purchase_trans_no','id_supplier', 'number_id_supplier','supplier_name' ,'reason', DB::raw('count(trans_no) as total_product'),
                 'total', 'is_approve'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -75,7 +75,7 @@ class PurchaseReturnController extends Controller
             $purchase = PurchaseReturnView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_grn', 'grn_trans_no' , 
-                'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
+                'id_purchase' ,'purchase_trans_no','id_supplier', 'number_id_supplier','supplier_name','reason','total', 'is_approve'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
                     $query->where("trans_no", $id);
@@ -130,7 +130,7 @@ class PurchaseReturnController extends Controller
             $purchasereturn =PurchaseReturnView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_grn', 'grn_trans_no' , 
-                'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
+                'id_purchase' ,'purchase_trans_no','id_supplier', 'number_id_supplier','supplier_name','reason','total', 'is_approve'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
                 ->when($isapprove !== null, function($query) use ($isapprove){
@@ -140,6 +140,7 @@ class PurchaseReturnController extends Controller
                     $query->Where('trans_no', 'like', "%{$key}%");
                     $query->orWhere('grn_trans_no', 'like', "%{$key}%");
                     $query->orWhere('purchase_trans_no', 'like', "%{$key}%");
+                    $query->orWhere('number_id_supplier', 'like', "%{$key}%");
                     $query->orWhere('supplier_name', 'like', "%{$key}%");
                 })
                 ->groupBy('trans_no')->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)->paginate(perPage:$perpage, page:$page);
@@ -212,7 +213,7 @@ class PurchaseReturnController extends Controller
                 $datapurchasereturn = PurchaseReturnView::select(
                     'branchcode', 'id' , 'trans_no', 
                     'trans_date' ,'id_grn', 'grn_trans_no' , 
-                    'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
+                    'id_purchase' ,'purchase_trans_no','id_supplier', 'number_id_supplier','supplier_name','reason','total', 'is_approve'
                     )
                     ->where("branchcode", $purchasereturn->branchcode)->where('trans_no',$purchasereturn->trans_no)->first();
 
@@ -302,7 +303,7 @@ class PurchaseReturnController extends Controller
                 $datapurchasereturn = PurchaseReturnView::select(
                     'branchcode', 'id' , 'trans_no', 
                     'trans_date' ,'id_grn', 'grn_trans_no' , 
-                    'id_purchase' ,'purchase_trans_no','id_supplier', 'supplier_name','reason','total', 'is_approve'
+                    'id_purchase' ,'purchase_trans_no','id_supplier', 'number_id_supplier','supplier_name','reason','total', 'is_approve'
                     )
                     ->where("branchcode", $purchasereturn->branchcode)->where('trans_no',$purchasereturn->trans_no)->first();
 

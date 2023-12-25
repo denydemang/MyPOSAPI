@@ -42,7 +42,7 @@ class GRNController extends Controller
         try {
             $grns =GRNSView::select(    
                 'branchcode', 'id' , 'trans_no', 
-                'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                 'description', 'total_purchase','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
                 )->where("branchcode", $branchcode)
                 ->whereBetween("received_date", [$startdate,$enddate])
@@ -74,7 +74,7 @@ class GRNController extends Controller
         try {
             $grns = GRNSView::select(
                 'branchcode', 'id' , 'trans_no', 
-                'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                 'description', 'total_purchase','other_fee','ppn','grand_total','is_approve'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
@@ -128,7 +128,7 @@ class GRNController extends Controller
         try {
             $grns =GRNSView::select(
                 'branchcode', 'id' , 'trans_no', 
-                'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                 'description', 'total_purchase','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
                 )->where("branchcode", $branchcode)
                 ->whereBetween("received_date", [$startdate,$enddate])
@@ -139,6 +139,7 @@ class GRNController extends Controller
                     $query->Where('trans_no', 'like', "%{$key}%");
                     $query->orWhere('purchase_trans_no', 'like', "%{$key}%");
                     $query->orWhere('supplier_name', 'like', "%{$key}%");
+                    $query->orWhere('number_id_supplier', 'like', "%{$key}%");
                     $query->orWhere('received_by', 'like', "%{$key}%");
                 })
                 ->groupBy('trans_no')->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)->paginate(perPage:$perpage, page:$page);
@@ -220,7 +221,7 @@ class GRNController extends Controller
                 
                 $datagrns = GRNSView::select(
                     'branchcode', 'id' , 'trans_no', 
-                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                     'description', 'total_purchase','other_fee','ppn','grand_total','is_approve'
                     )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
 
@@ -329,7 +330,7 @@ class GRNController extends Controller
 
                 $datagrns = GRNSView::select(
                     'branchcode', 'id' , 'trans_no', 
-                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                     'description', 'total_purchase','other_fee','ppn','grand_total','is_approve'
                     )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
 
@@ -444,7 +445,7 @@ class GRNController extends Controller
                 $totalCogs = round($Cogs->sum('cogs'), 0);
                 $datagrns = GRNSView::select(
                     'branchcode', 'id' , 'trans_no', 
-                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','supplier_name','received_by',
+                    'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                     'description', 'total_purchase','other_fee','ppn','grand_total','is_approve'
                     )->where('branchcode',$grns->branchcode)->where('trans_no', $grns->trans_no)->first();
 

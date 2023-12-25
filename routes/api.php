@@ -86,10 +86,10 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     });
     Route::middleware(ApiAuthSupplierMiddleware::class)->group(function(){
         Route::controller(SupplierController::class)->group(function(){
-            Route::get('/suppliers/list/{numberperpage}/{branchcode}' ,'getall');
+            Route::get('/suppliers/list/{branchcode}' ,'getall');
             Route::get('/suppliers/detail/{id}' ,'get');
             Route::get('/suppliers/{branchcode}/search' ,'search');
-            Route::put('/suppliers/{id}' ,'update');
+            Route::put('/suppliers/{branchcode}/{id}' ,'update');
             Route::post('/suppliers' ,'create'); 
             Route::delete('/suppliers/{id}' ,'delete');
         }); 
