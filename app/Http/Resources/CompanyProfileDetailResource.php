@@ -18,13 +18,14 @@ class CompanyProfileDetailResource extends JsonResource
             "data" => [
                 "branchcode" =>$this->branchcode,
                 "profile_name" =>$this->profile_name,
+                "app_name" =>$this->app_name,
                 "address" =>$this->address,
                 "phone" =>$this->phone,
                 "email" =>$this->email,
                 "npwp" =>$this->npwp,
                 "moto" =>$this->moto,
             ],
-            "success" => "successfully get specific comp.profile"
+            "success" => "successfully get specific comp profile"
             ];
     }
 }

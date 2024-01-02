@@ -12,4 +12,15 @@ class CompanyProfile extends Model
     protected $keyType ="string";
     public $timestamps =true;
     public $incrementing =true;
+
+    protected $fillable = [
+        'branchcode' ,
+        'profile_name',
+        'app_name',
+        'address',
+        'phone' ,
+        'email',
+        'npwp' ,
+        'moto',
+    ];
 }

@@ -27,12 +27,13 @@ class CompanyProfileCreateRequest extends FormRequest
     {
         return [
             'branchcode' => 'required',
-            'profile_name' => 'required',
-            'address' => 'max:100',
-            'phone' => 'numeric|max:14',
-            'email' => 'email',
-            'npwp' => 'max: 100',
-            'moto' => 'max: 300',
+            'profile_name' => 'required|max:30',
+            'app_name' => 'required|max:10',
+            'address' => 'required|max:100',
+            'phone' => 'required|numeric|digits_between:5,13',
+            'email' => 'required|email',
+            'npwp' => 'max: 100|nullable',
+            'moto' => 'max: 300|nullable',
         ];
     }
     protected function failedValidation(Validator $validator){

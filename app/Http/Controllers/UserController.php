@@ -6,8 +6,6 @@ use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserResource;
-use App\Http\Resources\UserResourceCollection;
-use App\Models\CompanyProfile;
 use App\Models\remember_token;
 use App\Models\User;
 use App\Models\UserView;
@@ -308,47 +306,6 @@ class UserController extends Controller
             "success" => "User Successfully Updated"
         ])->setStatusCode(200);
 
-    }
-    public function checkcompany($id) : JsonResponse
-    {
-        try {
-            $user = User::where("id", $id)->first();
-            if($user) {
-                $isexistcompany = CompanyProfile::where("branchcode", $user->branchcode)->first();
-
-                if($isexistcompany){
-                    return response()->json([
-                        "data" => [
-                            "iscompanyexists" => true,
-                        ]
-                        ]);
-                } else{
-                    return response()->json([
-                        "data" => [
-                            "iscompanyexists" =>false
-                        ]
-                        ]);
-                }
-            }
-        } catch (\Throwable $th) {
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        $th->getMessage()
-                    ]
-                ]
-                ],500));
-        }
-        if(!$user){
-            throw new HttpResponseException(response([
-                "errors" => [
-                    "general" => [
-                        "User Not Found"
-                    ]
-                ]
-                ],404));
-        }
-        
     }
     public function deactivate($id){
         try {

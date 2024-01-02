@@ -49,6 +49,9 @@ Route::controller(UserController::class)->group(function(){
 Route::controller(RoleController::class)->group(function(){
     Route::get("/roles/access/{token}", "getaccessview");
 });
+Route::controller(CompanyProfileController::class)->group(function(){
+    Route::get('/companyprofiles/detail/{branchcode}' ,'get');
+}); 
     
 Route::middleware(ApiAuthMiddleware::class)->group(function(){
     Route::middleware(ApiAuthUserMiddleware::class)->group(function(){
@@ -97,13 +100,15 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     Route::middleware(ApiAuthCompanyProfileMiddleware::class)->group(function(){
         Route::controller(CompanyProfileController::class)->group(function(){
             Route::get('/companyprofiles/list' ,'getall');
-            Route::get('/companyprofiles/detail/{branchcode}' ,'get');
             Route::get('/companyprofiles/search' ,'search');
             Route::put('/companyprofiles/{branchcode}' ,'update');
-            Route::post('/companyprofiles' ,'create');
+            Route::get('/companyprofiles/check/{id_user}' ,'checkcompany');
             Route::delete('/companyprofiles/{id}' ,'delete');
         }); 
     });
+    Route::controller(CompanyProfileController::class)->group(function(){
+        Route::post('/companyprofiles' ,'create');
+    }); 
     Route::middleware(ApiAuthCustomerMiddleware::class)->group(function(){
         Route::controller(CustomerController::class)->group(function(){
             Route::get('/customers/list/{numberperpage}/{branchcode}' ,'getall');

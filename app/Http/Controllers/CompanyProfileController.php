@@ -7,6 +7,7 @@ use App\Http\Requests\CompanyProfileUpdateRequest;
 use App\Http\Resources\CompanyProfileDetailResource;
 use App\Http\Resources\CompanyProfileResourceCollection;
 use App\Models\CompanyProfile;
+use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class CompanyProfileController extends Controller
     {
         try {
             $CompProfile = CompanyProfile::where("branchcode", $branchcode)->first();
+
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -43,7 +45,18 @@ class CompanyProfileController extends Controller
                 ]
                 ],500));
         }
-        return new CompanyProfileDetailResource($CompProfile);
+        if ($CompProfile){
+
+            return new CompanyProfileDetailResource($CompProfile);
+        } else {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "BranchCode Not Found"
+                    ]
+                ]
+                ],404));
+        }
     }
     public function search(Request $request) : CompanyProfileResourceCollection
     {
@@ -80,6 +93,7 @@ class CompanyProfileController extends Controller
                 $CP = new CompanyProfile();
                 $CP->branchcode = $dataValidated["branchcode"];
                 $CP->profile_name = $dataValidated["profile_name"];
+                $CP->app_name = $dataValidated["app_name"];
                 $CP->address = $dataValidated["address"];
                 $CP->phone = $dataValidated["phone"];
                 $CP->email = $dataValidated["email"];
@@ -118,6 +132,7 @@ class CompanyProfileController extends Controller
             $CP = CompanyProfile::where("branchcode",$branchcode)->first();
             if ($CP){
                 $CP->profile_name = $dataValidated["profile_name"];
+                $CP->app_name = $dataValidated["app_name"];
                 $CP->address = $dataValidated["address"];
                 $CP->phone = $dataValidated["phone"];
                 $CP->email = $dataValidated["email"];
@@ -183,5 +198,46 @@ class CompanyProfileController extends Controller
             ],
             "success" => "Successfully Deleted Company Profile"
         ])->setStatusCode(200);
+    }
+    public function checkcompany($id) : JsonResponse
+    {
+        try {
+            $user = User::where("id", $id)->first();
+            if($user) {
+                $isexistcompany = CompanyProfile::where("branchcode", $user->branchcode)->first();
+
+                if($isexistcompany){
+                    return response()->json([
+                        "data" => [
+                            "iscompanyexists" => true,
+                        ]
+                        ]);
+                } else{
+                    return response()->json([
+                        "data" => [
+                            "iscompanyexists" =>false
+                        ]
+                        ]);
+                }
+            }
+        } catch (\Throwable $th) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        $th->getMessage()
+                    ]
+                ]
+                ],500));
+        }
+        if(!$user){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "general" => [
+                        "User Not Found"
+                    ]
+                ]
+                ],404));
+        }
+        
     }
 }
