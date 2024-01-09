@@ -129,18 +129,44 @@ class ProductController extends Controller
         $perpage = (null != $request->get("perpage")) ?  $request->get("perpage") : 10;
         $tableName = (new ProductView())->getTable();
         $columlist = Schema::getColumnListing($tableName);
+
+        
+        $filterby =  $request->get('filterby') && in_array(strtolower($request->get('filterby')),$columlist) ? strtolower($request->get('filterby') ): 'all';
         $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "id";
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
         $page = (null != $request->get('page'))? $request->get('page') : 1; 
 
+        for ($i=0; $i < count($columlist); $i++) { 
+            
+        }
         $data = ProductView::selectRaw("ROW_NUMBER() OVER (ORDER BY products_view.id) AS rownumber,
-        products_view.*")->where("branchcode", $branchcode)->where(function($query) use ($key){
-            $query->where('barcode', 'like', '%'. $key .'%');
-            $query->orwhere('name', 'like', '%'. $key .'%');
-            $query->orwhere('brands', 'like', '%'. $key .'%');
-            $query->orwhere('price', 'like', '%'. $key .'%');
-            $query->orwhere('category', 'like', '%'. $key .'%');
-            $query->orwhere('unit', 'like', '%'. $key .'%');
+        products_view.*")->where("branchcode", $branchcode)
+        ->where(function($query) use ($key, $filterby,$columlist){
+            $valuesToRemove = ["id", "branchcode", "id_category", "status"];
+            // 
+            $arrayFiltered = array_values(array_diff($columlist, $valuesToRemove));
+            if($filterby == 'all'){
+                $query->where('barcode', 'like', '%'. $key .'%');
+                for ($i=0; $i < count($arrayFiltered); $i++) { 
+                    if ($arrayFiltered[$i] == 'price' ||$arrayFiltered[$i] == 'maxstock' || $arrayFiltered[$i] == 'minstock' || $arrayFiltered[$i] == 'remaining_stock'){
+                        $query->orwhere($arrayFiltered[$i], '=', $key );
+                    } else{
+                        $query->orwhere($arrayFiltered[$i], 'like','%'. $key .'%');
+                    }
+
+                }
+            }else{
+                for ($i=0; $i < count($arrayFiltered); $i++) { 
+                    if ($filterby == $arrayFiltered[$i]){
+                        if ($filterby == 'price' ||$filterby == 'maxstock' || $filterby == 'minstock'  || $arrayFiltered[$i] == 'remaining_stock'){
+
+                            $query->orwhere($filterby, '=', $key );
+                        } else{
+                            $query->orwhere($filterby, 'like','%'. $key .'%');
+                        }
+                    } 
+                }
+            }
         })
         ->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)
         ->Paginate(perPage:$perpage, page:$page);
