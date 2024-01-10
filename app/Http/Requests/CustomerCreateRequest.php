@@ -22,11 +22,10 @@ class CustomerCreateRequest extends FormRequest
     {
         return [
             'branchcode' => 'required',
-            'cust_no' => 'required',
+            'cust_no' => 'nullable',
             'name' => 'required',
             "address" => 'nullable',
-            'phone' => 'nullable:numeric',
-            'active' => 'required',
+            'phone' => 'nullable|numeric',
         ];
     }
     protected function failedValidation(Validator $validator){

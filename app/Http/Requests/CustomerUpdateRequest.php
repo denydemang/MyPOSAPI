@@ -27,9 +27,9 @@ class CustomerUpdateRequest extends FormRequest
     {
         return [
             'name' => 'required',
+            'cust_no' => 'required',
             'address' => 'nullable',
             'phone' => 'nullable|numeric',
-            'active' => 'required',
         ];
     }
     protected function failedValidation(Validator $validator){

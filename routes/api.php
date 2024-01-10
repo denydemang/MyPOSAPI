@@ -111,7 +111,7 @@ Route::middleware(ApiAuthMiddleware::class)->group(function(){
     }); 
     Route::middleware(ApiAuthCustomerMiddleware::class)->group(function(){
         Route::controller(CustomerController::class)->group(function(){
-            Route::get('/customers/list/{numberperpage}/{branchcode}' ,'getall');
+            Route::get('/customers/list/{branchcode}' ,'getall');
             Route::get('/customers/detail/{branchcode}/{idorcustno}' ,'get');
             Route::get('/customers/{branchcode}/search' ,'search');
             Route::put('/customers/{branchcode}/{idorcustno}' ,'update');

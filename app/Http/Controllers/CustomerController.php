@@ -9,15 +9,16 @@ use App\Http\Resources\CustomerResoureCollection;
 use App\Models\Customer;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
 class CustomerController extends Controller
 {
-    public function getall($numberperpage,$branchcode) : CustomerResoureCollection
+    public function getall($branchcode, Request $request ) : CustomerResoureCollection
     {
-        
+        $perpage = $request->get("perpage") ? $request->get("perpage")  : 10;
         try {
-            $customer = Customer::where("branchcode",$branchcode)->where('active', 1)->paginate($numberperpage);
+            $customer = Customer::where("branchcode",$branchcode)->where('active', 1)->paginate($perpage);
             
         } catch (\Throwable $th) {
             throw new HttpResponseException(response([
@@ -95,7 +96,6 @@ class CustomerController extends Controller
                 $data->name = $dataValidated["name"];
                 $data->address = isset($dataValidated["address"]) ? $dataValidated["address"]  : $data->address  ;
                 $data->phone = isset($dataValidated["phone"]) ? $dataValidated["phone"] :$data->phone;
-                $data->active = $dataValidated["active"];
                 $data->update();
             }
         } catch (\Throwable $th) {
@@ -123,20 +123,48 @@ class CustomerController extends Controller
     {
         $dataValidated = $request->validated();
         try {
-            $barcode = Customer::where("branchcode",$dataValidated['branchcode'])->where("active", 1)->where("cust_no",$dataValidated['cust_no'])->first();
+            $name = Customer::where("branchcode", $dataValidated['branchcode'])->where("active", 1)->where("name",  $dataValidated["name"])->first();
+            $cust_no  = null;
 
-            if(!$barcode){
-                $data = new Customer();
-                $data->branchcode = $dataValidated['branchcode'];
-                $data->cust_no = $dataValidated['cust_no'];
-                $data->name = $dataValidated["name"];
-                $data->address = isset($dataValidated["address"]) ? $dataValidated["address"] : null;
-                $data->phone = isset($dataValidated["phone"]) ? $dataValidated["phone"] : null;
-                $data->active = $dataValidated["active"];
-    
-                $data->save();
+            if(!$name){
+                DB::beginTransaction();
+                $data  = new Customer();
+                if ($dataValidated["cust_no"]){
+                    $cust_no = Customer::where("branchcode", $dataValidated['branchcode'])->where("active", 1)->where("cust_no",  $dataValidated["cust_no"])->first();
+                    if (!$cust_no){
+                        $data->cust_no = $dataValidated["cust_no"] ? $dataValidated["cust_no"] : null ;
+                        $data->branchcode = $dataValidated["branchcode"];
+                        $data->name = $dataValidated["name"];
+                        $data->address = $dataValidated["address"]  ? $dataValidated["address"] : null ;
+                        $data->phone = $dataValidated["phone"] ? $dataValidated['phone'] : null;
+                        $data->active = 1;
+
+                        $data->save();
+                    }
+                } else {
+                    $newCodeCust="";
+                    $getCustID = Customer::select('cust_no')->where("branchcode", $dataValidated["branchcode"])->where("active", 1)->where("cust_no","like", "Cust_%")->orderBy("cust_no", "desc")->first();
+                    if ($getCustID){
+                        $getLockMax = Customer::select('cust_no')->where("branchcode", $dataValidated["branchcode"])->where("active", 1)->where("cust_no", ">=", $getCustID->cust_no)->lockForUpdate()->orderBy("cust_no", "desc")->first();
+                        $getLastDigit = intval(str_replace("Cust_","",$getLockMax->cust_no));
+                        $newCodeCust  = "Cust_". sprintf("%03d",$getLastDigit + 1);
+                    } else {
+                        $newCodeCust  = "Cust_001";
+                    }
+                    $data->cust_no =$newCodeCust;
+                    $data->branchcode = $dataValidated["branchcode"];
+                    $data->name = $dataValidated["name"];
+                    $data->address = $dataValidated["address"]  ? $dataValidated["address"] : null ;
+                    $data->phone = $dataValidated["phone"] ? $dataValidated['phone'] : null;
+                    $data->active = 1;
+        
+                    $data->save();
+                }
+                DB::commit();
             }
+    
         } catch (\Throwable $th) {
+            DB::rollBack();
             throw new HttpResponseException(response([
                 "errors" => [
                     "general" => [
@@ -145,11 +173,20 @@ class CustomerController extends Controller
                 ]
                 ],500));
         }
-        if ($barcode) {
+        if ($name){
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "name" => [
+                        "Name Already Exists"
+                    ]
+                ]
+                ],400));
+        }
+        if ($cust_no){
             throw new HttpResponseException(response([
                 "errors" => [
                     "cust_no" => [
-                        "No Cust Already Exist"
+                        "Cust ID Already Exists"
                     ]
                 ]
                 ],400));

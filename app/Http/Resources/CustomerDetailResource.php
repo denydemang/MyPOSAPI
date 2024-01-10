@@ -25,7 +25,7 @@ class CustomerDetailResource extends JsonResource
             "data" =>[
                 "id" => $this->resource->id,
                 "branchcode" => $this->resource->branchcode,
-                "name" => $this->resource->cust_no,
+                "cust_no" => $this->resource->cust_no,
                 "name" => $this->resource->name,
                 "address" => $this->resource->address,
                 "contact" => $this->resource->phone,

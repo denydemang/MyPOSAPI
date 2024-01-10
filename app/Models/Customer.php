@@ -15,9 +15,10 @@ class Customer extends Model
 
     protected $fillable =[
         "branchcode",
+        "cust_no",
         "name",
         "address",
-        "contact",
+        "phone",
         "active"
     ];
 }
