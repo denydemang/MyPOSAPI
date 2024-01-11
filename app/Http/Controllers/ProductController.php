@@ -140,18 +140,18 @@ class ProductController extends Controller
         products_view.*")->where("branchcode", $branchcode)
         ->where(function($query) use ($key, $filterby,$columlist){
             $valuesToRemove = ["id", "branchcode", "id_category", "status"];
-            // 
             $arrayFiltered = array_values(array_diff($columlist, $valuesToRemove));
             if($filterby == 'all'){
-                $query->where('barcode', 'like', '%'. $key .'%');
-                for ($i=0; $i < count($arrayFiltered); $i++) { 
-                    if ($arrayFiltered[$i] == 'price' ||$arrayFiltered[$i] == 'maxstock' || $arrayFiltered[$i] == 'minstock' || $arrayFiltered[$i] == 'remaining_stock'){
-                        $query->orwhere($arrayFiltered[$i], '=', $key );
-                    } else{
-                        $query->orwhere($arrayFiltered[$i], 'like','%'. $key .'%');
-                    }
 
-                }
+                $query->where('barcode', 'like', '%'. $key .'%');
+                $query->orWhere('name', 'like', '%'. $key .'%');   
+                $query->orWhere('brands', 'like', '%'. $key .'%');   
+                $query->orWhere('category', 'like', '%'. $key .'%');   
+                $query->orWhere('unit', 'like', '%'. $key .'%');   
+                $query->orWhere('price', '=', $key );   
+                $query->orWhere('maxstock', '=', $key );   
+                $query->orWhere('minstock', '=', $key );   
+                $query->orWhere('remaining_stock', 'like','%'. $key .'%');   
             }else{
                 for ($i=0; $i < count($arrayFiltered); $i++) { 
                     if ($filterby == $arrayFiltered[$i]){
