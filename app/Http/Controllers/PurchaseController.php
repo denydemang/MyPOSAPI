@@ -122,7 +122,8 @@ class PurchaseController extends Controller
         $key = $request->get('key');
         $tableName = (new PurchaseView())->getTable();
         $columlist = Schema::getColumnListing($tableName);
-
+        $listFilter = ["trans_no", "pic_name", "number_id_supplier", "supplier_name"];
+        $filterby =  $request->get('filterby') && in_array(strtolower($request->get('filterby')),$listFilter) ? strtolower($request->get('filterby') ): 'all';
         $iscredit = $request->get('iscredit'); 
         $isapprove = $request->get('isapprove'); 
         $isreceived = $request->get('isreceived');
@@ -136,7 +137,7 @@ class PurchaseController extends Controller
         $enddate = (null != $request->get("enddate")) ? date("Y-m-d", strtotime($request->get("enddate"))): $lastdate;
 
         try {
-            $purchase =PurchaseView::select(
+            $purchase =PurchaseView::select(DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
                 'id_supplier' ,'number_id_supplier','supplier_name', 'total_purchase',DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
@@ -152,11 +153,20 @@ class PurchaseController extends Controller
                 ->when($isreceived !== null, function($query) use($isreceived){
                     $query->where('is_received', filter_var($isreceived, FILTER_VALIDATE_BOOLEAN));
                 })
-                ->where(function($query) use ($key){
-                    $query->Where('trans_no', 'like', "%{$key}%");
-                    $query->orWhere('pic_name', 'like', "%{$key}%");
-                    $query->orWhere('number_id_supplier', 'like', "%{$key}%");
-                    $query->orWhere('supplier_name', 'like', "%{$key}%");
+                ->where(function($query) use ($key, $filterby, $listFilter){
+                    
+                    if($filterby == "all"){
+                        $query->Where('trans_no', 'like', "%{$key}%");
+                        $query->orWhere('pic_name', 'like', "%{$key}%");
+                        $query->orWhere('number_id_supplier', 'like', "%{$key}%");
+                        $query->orWhere('supplier_name', 'like', "%{$key}%");
+                    } else {                        
+                        foreach($listFilter as $filter){
+                            if ($filter == $filterby){
+                                $query->orWhere($filter, 'like', "%{$key}%");
+                            }
+                        }
+                    }                  
                 })
                 ->groupBy('trans_no')->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)->paginate(perPage:$perpage, page:$page);
                 $purchase->withPath($request->fullUrl());

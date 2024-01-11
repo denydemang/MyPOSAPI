@@ -136,9 +136,6 @@ class ProductController extends Controller
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
         $page = (null != $request->get('page'))? $request->get('page') : 1; 
 
-        for ($i=0; $i < count($columlist); $i++) { 
-            
-        }
         $data = ProductView::selectRaw("ROW_NUMBER() OVER (ORDER BY products_view.id) AS rownumber,
         products_view.*")->where("branchcode", $branchcode)
         ->where(function($query) use ($key, $filterby,$columlist){
@@ -158,7 +155,7 @@ class ProductController extends Controller
             }else{
                 for ($i=0; $i < count($arrayFiltered); $i++) { 
                     if ($filterby == $arrayFiltered[$i]){
-                        if ($filterby == 'price' ||$filterby == 'maxstock' || $filterby == 'minstock'  || $arrayFiltered[$i] == 'remaining_stock'){
+                        if ($filterby == 'price' ||$filterby == 'maxstock' || $filterby == 'minstock'  ||  $filterby == 'remaining_stock'){
 
                             $query->orwhere($filterby, '=', $key );
                         } else{
