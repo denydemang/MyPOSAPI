@@ -39,7 +39,7 @@ class PurchaseController extends Controller
         $startdate = (null != $request->get("startdate"))? date("Y-m-d", strtotime($request->get("startdate"))): $firstdate;
         $enddate = (null != $request->get("enddate")) ? date("Y-m-d", strtotime($request->get("enddate"))): $lastdate;
         try {
-            $purchase =PurchaseView::select(
+            $purchase =PurchaseView::select(DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
                 'id_supplier' ,'number_id_supplier','supplier_name','total_purchase', DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
