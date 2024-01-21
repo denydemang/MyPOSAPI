@@ -23,10 +23,14 @@ class ProductController extends Controller
         $columlist = Schema::getColumnListing($tableName);
         $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "id";
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
+        $categoryBy =$request->get("categoryby");
         $page = (null != $request->get('page'))? $request->get('page') : 1; 
         try {
             $value = ProductView::selectRaw("ROW_NUMBER() OVER (ORDER BY products_view.id) AS rownumber,
             products_view.*")->where("branchcode", $keybranch)
+            ->when($categoryBy !== null , function($query) use($categoryBy){
+                $query->where("id_category", $categoryBy);
+            })
             ->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)
             ->Paginate(perPage:$perpage, page:$page);
             $value->withPath($request->fullUrl());
@@ -129,33 +133,30 @@ class ProductController extends Controller
         $perpage = (null != $request->get("perpage")) ?  $request->get("perpage") : 10;
         $tableName = (new ProductView())->getTable();
         $columlist = Schema::getColumnListing($tableName);
-
-        
-        $filterby =  $request->get('filterby') && in_array(strtolower($request->get('filterby')),$columlist) ? strtolower($request->get('filterby') ): 'all';
+        $listFilter = ["barcode", "name", "brands", "unit","price","remaining_stock"];
+        $filterby =  $request->get('filterby') && in_array(strtolower($request->get('filterby')),$listFilter) ? strtolower($request->get('filterby') ): 'all';
+        $categoryBy =$request->get("categoryby");
         $orderBy = (null != $request->get('orderby') && in_array(strtolower($request->get('orderby')),$columlist)) ? $request->get('orderby') : "id";
         $ascdesc = (null != $request->get('ascdesc') && (strtolower($request->get('ascdesc'))== "asc"|| strtolower($request->get('ascdesc'))== "desc"))? $request->get('ascdesc'): "asc";
         $page = (null != $request->get('page'))? $request->get('page') : 1; 
 
         $data = ProductView::selectRaw("ROW_NUMBER() OVER (ORDER BY products_view.id) AS rownumber,
         products_view.*")->where("branchcode", $branchcode)
-        ->where(function($query) use ($key, $filterby,$columlist){
-            $valuesToRemove = ["id", "branchcode", "id_category", "status"];
-            $arrayFiltered = array_values(array_diff($columlist, $valuesToRemove));
+        ->when($categoryBy !== null , function($query) use($categoryBy){
+            $query->where("id_category", $categoryBy);
+        })
+        ->where(function($query) use ($key, $filterby,$listFilter){
             if($filterby == 'all'){
-
                 $query->where('barcode', 'like', '%'. $key .'%');
-                $query->orWhere('name', 'like', '%'. $key .'%');   
-                $query->orWhere('brands', 'like', '%'. $key .'%');   
-                $query->orWhere('category', 'like', '%'. $key .'%');   
-                $query->orWhere('unit', 'like', '%'. $key .'%');   
-                $query->orWhere('price', '=', $key );   
-                $query->orWhere('maxstock', '=', $key );   
-                $query->orWhere('minstock', '=', $key );   
-                $query->orWhere('remaining_stock', 'like','%'. $key .'%');   
+                $query->orWhere('name', 'like', '%'. $key .'%');
+                $query->orWhere('brands', 'like', '%'. $key .'%');
+                $query->orWhere('unit', 'like', '%'. $key .'%');
+                $query->orWhere('price', '=', $key );
+                $query->orWhere('remaining_stock', 'like',  '%'. $key .'%');
             }else{
-                for ($i=0; $i < count($arrayFiltered); $i++) { 
-                    if ($filterby == $arrayFiltered[$i]){
-                        if ($filterby == 'price' ||$filterby == 'maxstock' || $filterby == 'minstock'  ||  $filterby == 'remaining_stock'){
+                for ($i=0; $i < count($listFilter); $i++) { 
+                    if ($filterby == $listFilter[$i]){
+                        if ($filterby == 'price'){
 
                             $query->orwhere($filterby, '=', $key );
                         } else{

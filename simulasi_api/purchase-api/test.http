@@ -1,0 +1,47 @@
+# Create New Transaction Purchase Return
+POST http://127.0.0.1:8000/api/purchases
+Content-Type: application/json
+Authorization: 21bc82bb-ffe9-4874-9550-881ca10b0566
+
+{
+  "branchcode" : "int",
+  "trans_date" : "2024-01-01",
+  "id_user" : 6,
+  "id_supplier" : 1,
+  "total" : 1000,
+  "discount" : 0,
+  "other_fee" : 0,
+  "payment_term" : null,
+  "ppn" : 0,
+  "grand_total" : 25000,
+  "is_credit" : true,
+  "items" : [
+      {
+          "id_product" : "7",
+          "id_unit" : "pcs",
+          "qty" : 10,
+          "price" : 9999,
+          "total" :8888,
+          "sub_total" : 9999
+          
+      },
+      {
+          "id_product" : "5",
+          "id_unit" : "pcs",
+          "qty" : 99,
+          "price" : 9999,
+          "total" :8888,
+          "sub_total" : 9999
+          
+      },
+      {
+          "id_product" : "2",
+          "id_unit" : "pcs",
+          "qty" : 100,
+          "price" : 9999,
+          "total" :8888,
+          "sub_total" : 9999
+          
+      }
+  ]
+}
