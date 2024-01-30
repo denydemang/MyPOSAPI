@@ -33,6 +33,7 @@ class PurchaseCreateRequest extends FormRequest
             "total" => "required|numeric",
             "other_fee" => "nullable|numeric",
             "payment_term" => "nullable",
+            "percent_ppn" => "nullable|numeric",
             "ppn" => "nullable|numeric",
             "grand_total" => "required|numeric",
             "is_credit" => "required",

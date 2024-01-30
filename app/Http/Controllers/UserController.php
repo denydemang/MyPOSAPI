@@ -55,7 +55,7 @@ class UserController extends Controller
         date_default_timezone_set('Asia/Jakarta');
         remember_token::where("token_expired" , "<=" ,date('Y-m-d h:m:s'))->delete();
         try {
-            $user = User::where("username", $dataValidated["username"])->where("branchcode",$branchcode)->where('active', 1)->first();
+            $user = UserView::where("username", $dataValidated["username"])->where("branchcode",$branchcode)->where('active', 1)->first();
             if($user && Hash::check($dataValidated['password'], $user->password)){
                 $remember_token = new remember_token();
                 $remember_token->token = Str::uuid()->toString();

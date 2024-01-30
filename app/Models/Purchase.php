@@ -21,6 +21,7 @@ class Purchase extends Model
         "id_supplier",
         "total",
         "other_fee",
+        "percent_ppn",
         "ppn",
         "grand_total",
         "payment_term",

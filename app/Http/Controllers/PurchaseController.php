@@ -42,7 +42,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'number_id_supplier','supplier_name','total_purchase', DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'number_id_supplier','supplier_name','total_purchase', DB::raw('count(trans_no) as total_product'), 'other_fee','percent_ppn', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -81,7 +81,7 @@ class PurchaseController extends Controller
             $purchase = PurchaseView::select(
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'number_id_supplier','supplier_name','total_purchase', 'other_fee', 'ppn',
+                'id_supplier' ,'number_id_supplier','supplier_name','total_purchase', 'other_fee','percent_ppn', 'ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
@@ -140,7 +140,7 @@ class PurchaseController extends Controller
             $purchase =PurchaseView::select(DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_user', 'pic_name' , 
-                'id_supplier' ,'number_id_supplier','supplier_name', 'total_purchase',DB::raw('count(trans_no) as total_product'), 'other_fee', 'ppn',
+                'id_supplier' ,'number_id_supplier','supplier_name', 'total_purchase',DB::raw('count(trans_no) as total_product'), 'other_fee', 'percent_ppn','ppn',
                 'payment_term', 'is_approve','is_credit', 'grand_total'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
@@ -205,6 +205,7 @@ class PurchaseController extends Controller
                 $purchase->id_supplier = $dataValidated['id_supplier'];
                 $purchase->total = $dataValidated['total'];
                 $purchase->other_fee = !empty($dataValidated['other_fee']) ? $dataValidated['other_fee'] : 0;
+                $purchase->percent_ppn = !empty($dataValidated['percent_ppn']) ? $dataValidated['percent_ppn'] : 0;
                 $purchase->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
                 $purchase->payment_term = !empty($dataValidated['payment_term']) ? $dataValidated['payment_term'] : null;
                 $purchase->grand_total = $dataValidated['grand_total'];
@@ -260,6 +261,7 @@ class PurchaseController extends Controller
                     $purchase->id_supplier = $dataValidated['id_supplier'];
                     $purchase->total = $dataValidated['total'];
                     $purchase->other_fee = $dataValidated['other_fee'];
+                    $purchase->percent_ppn = $dataValidated['percent_ppn'];
                     $purchase->ppn = $dataValidated['ppn'];
                     $purchase->grand_total = $dataValidated['grand_total'];
                     $purchase->payment_term = $dataValidated['payment_term'];
