@@ -91,8 +91,9 @@ class PurchaseController extends Controller
             $item = PurchaseView::select(
                 'branchcode' , 'id',
                 'trans_no', 'id_detail_purchases',
-                'id_product', 'barcode',
+                'id_product', 'barcode', 
                 'product_name', 'unit',
+                'id_category', 'category_name',
                 'qty', 'price','total', 'discount','sub_total'
 
             )->where('branchcode', $branchcode)->where(function($query) use ($id){
