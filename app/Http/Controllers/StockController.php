@@ -27,7 +27,7 @@ class StockController extends Controller
             throw new Exception('Insufficient Stock Of Supplies');
         }
         $stocks = Stock::where('branchcode', $branchcode)->where("id_product",$idproduct)
-        ->whereColumn("actual_stock", ">" ,"used_stock")->where('is_approve', 1)->lockForUpdate()->orderBy('date')->orderBy('id')->get();
+        ->whereColumn("actual_stock", ">" ,"used_stock")->lockForUpdate()->orderBy('date')->orderBy('id')->get();
 
         // return response()->json($stocks);
         foreach ($stocks as $stock){
@@ -252,7 +252,7 @@ class StockController extends Controller
         }
         return response()->json([
             "data" => $getinitialstock,
-            "success" => "Successfully Updated Initial Stock"
+            "success" => "Successfully Get Initial Stock"
         ])->setStatusCode(200);
     }
     

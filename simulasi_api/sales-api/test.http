@@ -1,0 +1,31 @@
+# Create New Transaction Purchase Return
+POST http://127.0.0.1:8000/api/sales
+Content-Type: application/json
+Authorization: b5448133-7c63-41d0-b05d-aa44b1f26603
+
+{
+  "branchcode" : "int",
+  "trans_date" : "2024-02-18",
+  "id_cust" : "23",
+  "id_user" :"16",
+  "total" : 302020320,
+  "other_fee" :1500202,
+  "ppn" : 2003203,
+  "notes" : "Mantap",
+  "grand_total" : 322323,   
+  "paid" : 230303,
+  "change_amount" :203930,
+  "is_credit" : false,
+  "items" : [
+      {
+          "id_product" : 80,
+          "id_unit" : "pcs",
+          "qty" : 10,
+          "price" : 9999,
+          "total" :8888,
+          "discount" : 231313 ,
+          "sub_total" : 9999
+          
+      }
+  ]
+}

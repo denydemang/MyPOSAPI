@@ -13,6 +13,7 @@ use App\Models\Purchase;
 use App\Models\Stock;
 use App\Models\UnitView;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -397,7 +398,19 @@ class GRNController extends Controller
                     $query->where("trans_no", $key);
                     $query->orWhere("id", $key);
                 })->delete();
-                Stock::where('branchcode', $branchcode)->where('ref',$grns->trans_no)->delete();
+                $stocks = Stock::where('branchcode', $branchcode)->where('ref',$grns->trans_no)->get();
+                $sumUsedStock = 0;
+                foreach($stocks as $stock){
+                    $sumUsedStock += $stock->used_stock;
+                }
+                if ($sumUsedStock > 0){
+                    throw new Exception("Stock Already Decreased By Transaction And Cannot be Deleted");
+                } else {
+                    foreach($stocks as $stock){
+                        $stock->delete();
+                    }
+                }
+            
                 Purchase::where('branchcode', $branchcode)->where('id',$grns->id_purchase)->update([
                     "is_received" => 0
                 ]);

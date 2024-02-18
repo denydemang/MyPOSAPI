@@ -42,17 +42,17 @@ class SalesController extends Controller
         $startdate = (null != $request->get("startdate"))? date("Y-m-d", strtotime($request->get("startdate"))): $firstdate;
         $enddate = (null != $request->get("enddate")) ? date("Y-m-d", strtotime($request->get("enddate"))): $lastdate;
         try {
-            $sales =SalesView::select(
+            $sales =SalesView::select( DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_cust','cust_no','cust_name','id_user', 'username' ,'pic_name' , 'role_name',
                 'total_sales', 'sales_ppn','other_fee', 'sales_notes',
-                'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount'
+                'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount' ,'is_approve'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
-                ->when($iscredit, function($query) use($iscredit){
+                ->when($iscredit !== null, function($query) use($iscredit){
                     $query->where('is_sales_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isapprove, function($query) use($isapprove){
+                ->when($isapprove !== null, function($query) use($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
                 ->groupBy('trans_no')
@@ -82,7 +82,7 @@ class SalesController extends Controller
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_cust','cust_no','cust_name','id_user', 'username' ,'pic_name' , 'role_name',
                 'total_sales' , 'sales_ppn', 'other_fee','sales_notes',
-                'is_sales_credit','grand_total', 'paid', 'change_amount'
+                'is_sales_credit','grand_total', 'paid', 'change_amount', 'is_approve'
                 )
                 ->where("branchcode", $branchcode)->where(function($query) use($id){
                     $query->where("trans_no", $id);
@@ -122,7 +122,8 @@ class SalesController extends Controller
         $key = $request->get('key');
         $tableName = (new SalesView())->getTable();
         $columlist = Schema::getColumnListing($tableName);
-
+        $listFilter = ["trans_no", "pic_name", "cust_no", "cust_name"];
+        $filterby =  $request->get('filterby') && in_array(strtolower($request->get('filterby')),$listFilter) ? strtolower($request->get('filterby') ): 'all';
         $iscredit = $request->get('iscredit'); 
         $isapprove = $request->get('isapprove'); 
         $firstdate =  date("Y-m-d",strtotime(Carbon::now()->firstOfMonth()));
@@ -135,25 +136,34 @@ class SalesController extends Controller
         $enddate = (null != $request->get("enddate")) ? date("Y-m-d", strtotime($request->get("enddate"))): $lastdate;
 
         try {
-            $sales =SalesView::select(
+            $sales =SalesView::select(DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),
                 'branchcode', 'id' , 'trans_no', 
                 'trans_date' ,'id_cust','cust_no','cust_name','id_user', 'username' ,'pic_name' , 'role_name',
                 'total_sales', 'sales_ppn', 'other_fee','sales_notes',
-                'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount'
+                'is_sales_credit',DB::raw('count(trans_no) as total_product'), 'grand_total','paid', 'change_amount','is_approve'
                 )->where("branchcode", $branchcode)
                 ->whereBetween("trans_date", [$startdate,$enddate])
-                ->when($iscredit, function($query) use($iscredit){
+                ->when($iscredit !== null, function($query) use($iscredit){
                     $query->where('is_sales_credit', filter_var($iscredit,FILTER_VALIDATE_BOOLEAN));
                 })
-                ->when($isapprove, function($query) use($isapprove){
+                ->when($isapprove !== null, function($query) use($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
-                ->where(function($query) use ($key){
-                    $query->Where('trans_no', 'like', "%{$key}%");
-                    $query->orWhere('cust_name', 'like', "%{$key}%");
-                    $query->orWhere('username', 'like', "%{$key}%");
-                    $query->orWhere('pic_name', 'like', "%{$key}%");
-                    $query->orWhere('role_name', 'like', "%{$key}%");
+                ->where(function($query) use ($key, $filterby, $listFilter){
+                    
+                    if($filterby == "all"){
+                        $query->Where('trans_no', 'like', "%{$key}%");
+                        $query->orWhere('pic_name', 'like', "%{$key}%");
+                        $query->orWhere('cust_no', 'like', "%{$key}%");
+                        $query->orWhere('cust_name', 'like', "%{$key}%");
+                        $query->orWhere('pic_name', 'like', "%{$key}%");
+                    } else {                        
+                        foreach($listFilter as $filter){
+                            if ($filter == $filterby){
+                                $query->orWhere($filter, 'like', "%{$key}%");
+                            }
+                        }
+                    }                  
                 })
                 ->groupBy('trans_no')->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)->paginate(perPage:$perpage, page:$page);
                 $sales->withPath($request->fullUrl());
