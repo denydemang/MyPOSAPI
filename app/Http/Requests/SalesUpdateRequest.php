@@ -32,6 +32,7 @@ class SalesUpdateRequest extends FormRequest
             "total" => "required|numeric",
             "other_fee" => "nullable|numeric",
             "ppn" => "nullable|numeric",
+            "percent_ppn" => "nullable|numeric",
             "notes" => "nullable",
             "grand_total" => "required|numeric",   
             "paid" => "required|numeric",

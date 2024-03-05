@@ -22,6 +22,7 @@ class Sales extends Model
         "total",
         "other_fee",
         "ppn",
+        "percent_ppn",
         "notes",
         "grand_total",
         "paid",
