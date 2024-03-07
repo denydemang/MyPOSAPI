@@ -201,12 +201,13 @@ class SalesController extends Controller
                 $sales->id_cust = $dataValidated['id_cust'];
                 $sales->id_user = $dataValidated['id_user'];
                 $sales->total = $dataValidated['total'];
+                $sales->other_fee =  $dataValidated['other_fee'];
                 $sales->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
                 $sales->percent_ppn = !empty($dataValidated['percent_ppn']) ? $dataValidated['percent_ppn'] : 0;
                 $sales->notes = !empty($dataValidated['notes']) ? $dataValidated['notes'] : null;
                 $sales->grand_total = $dataValidated['grand_total'];
                 $sales->paid = $dataValidated['paid'];
-                $sales->change_amount = $dataValidated['is_credit'];
+                $sales->change_amount = $dataValidated['change_amount'];
                 $sales->is_credit = $dataValidated['is_credit'];
                 $sales->save();
 
@@ -267,6 +268,8 @@ class SalesController extends Controller
                 $sales->ppn = !empty($dataValidated['ppn']) ? $dataValidated['ppn'] : 0;
                 $sales->percent_ppn = !empty($dataValidated['percent_ppn']) ? $dataValidated['percent_ppn'] : 0;
                 $sales->notes = !empty($dataValidated['notes']) ? $dataValidated['notes'] : null;
+                $sales->total = $dataValidated['total'];
+                $sales->other_fee =  $dataValidated['other_fee'];
                 $sales->grand_total = $dataValidated['grand_total'];
                 $sales->paid = $dataValidated['paid'];
                 $sales->change_amount = $dataValidated['change_amount'];
