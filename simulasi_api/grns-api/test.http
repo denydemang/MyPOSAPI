@@ -1,0 +1,87 @@
+
+# Requirement Rest Client Extension
+# How to use just block the url and right click then choose send request
+# Authorization is token to access api, can inspect in table remember_token
+
+# Get All GRNS
+GET http://127.0.0.1:8000/api/grns/list/int
+Authorization: 0573bd80-85e7-4d78-aea8-d0ddd4ae3765
+# Get All GRNS By Date
+GET http://127.0.0.1:8000/api/grns/list/int?startdate=2023-12-13&enddate=2023-12-30
+Authorization: 0573bd80-85e7-4d78-aea8-d0ddd4ae3765
+# Get All Approve GRNS
+GET http://127.0.0.1:8000/api/grns/list/int?isapprove=1
+Authorization: 0573bd80-85e7-4d78-aea8-d0ddd4ae3765
+
+#Get Specific GRNS by id
+GET http://127.0.0.1:8000/api/grns/detail/int/1
+Authorization: 0573bd80-85e7-4d78-aea8-d0ddd4ae3765
+#Get Specific GRNS by trans_no
+GET http://127.0.0.1:8000/api/grns/detail/int/prtn_001
+Authorization:0573bd80-85e7-4d78-aea8-d0ddd4ae3765
+
+#Get GRNS By Key Search (Search key is only for GRNS, grn, and purchase trans_no )
+GET http://127.0.0.1:8000/api/grns/int/search?key=GRN-2023-11-06-001
+Authorization: 0573bd80-85e7-4d78-aea8-d0ddd4ae3765
+
+# Create New Transaction GRNS
+POST http://127.0.0.1:8000/api/grns
+Content-Type: application/json
+Authorization: 03d582d7-426d-452e-8e28-93c8e3e372dc
+
+{
+  "branchcode" : "int",
+  "received_date" : "2024-03-01",
+  "id_purchase" : 316 ,
+  "received_by" : "demang",
+  "description" : "lengkap lur",
+  "items" : [
+      {
+          "id_product" : "53" ,
+          "id_unit" : "pcs" ,
+          "qty" : 1 ,   
+          "bonusqty" : 0 ,   
+          "unitbonusqty" : "pcs" ,   
+          "price" : 250000.00 ,
+          "total": 250000.00,
+          "discount" : 20000.00,
+          "sub_total" :230000.00
+          
+      },
+      {
+          "id_product" : "54" ,
+          "id_unit" : "pcs" ,
+          "qty" : 2 ,   
+          "bonusqty" : 0,   
+          "unitbonusqty" : "pcs" ,   
+          "price" : 300000.00 ,
+          "total": 600000.00,
+          "discount" : 150000.00,
+          "sub_total" :450000.00
+          
+      }
+  ]
+}
+
+# Update  Transaction GRNS
+PUT http://127.0.0.1:8000/api/grns/int/Psdasda
+Content-Type: application/json
+Authorization: 8789428f-943b-4af5-812c-5a7df2a3ff73
+
+{
+    "trans_date": "2023-11-15",
+    "items": [
+        {
+            "id_product": 7,
+            "id_unit": "rim",
+            "qty": 25
+        },
+        {
+            "id_product": 11,
+            "id_unit": "rim",
+            "qty": 25
+        }
+    ]
+}
+
+

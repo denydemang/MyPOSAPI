@@ -41,7 +41,7 @@ class GRNController extends Controller
         $startdate = (null != $request->get("startdate"))? date("Y-m-d", strtotime($request->get("startdate"))): $firstdate;
         $enddate = (null != $request->get("enddate")) ? date("Y-m-d", strtotime($request->get("enddate"))): $lastdate;
         try {
-            $grns =GRNSView::select(    
+            $grns =GRNSView::select(DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),  
                 'branchcode', 'id' , 'trans_no', 
                 'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                 'description', 'total_purchase','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
@@ -116,6 +116,8 @@ class GRNController extends Controller
         $key = $request->get('key');
         $tableName = (new GRNSView())->getTable();
         $columlist = Schema::getColumnListing($tableName);
+        $listFilter = ["trans_no", "purchase_trans_no", "number_id_supplier", "supplier_name", "received_by"];
+        $filterby =  $request->get('filterby') && in_array(strtolower($request->get('filterby')),$listFilter) ? strtolower($request->get('filterby') ): 'all';
         $isapprove = $request->get('isapprove'); 
         $firstdate =  date("Y-m-d",strtotime(Carbon::now()->firstOfMonth()));
         $lastdate =  date("Y-m-d",strtotime(Carbon::now()->lastOfMonth()));
@@ -127,7 +129,7 @@ class GRNController extends Controller
         $enddate = (null != $request->get("enddate")) ? date("Y-m-d", strtotime($request->get("enddate"))): $lastdate;
 
         try {
-            $grns =GRNSView::select(
+            $grns =GRNSView::select(DB::raw('ROW_NUMBER() OVER (ORDER BY id) AS rownumber'),
                 'branchcode', 'id' , 'trans_no', 
                 'received_date' ,'id_purchase','purchase_trans_no','id_supplier','number_id_supplier','supplier_name','received_by',
                 'description', 'total_purchase','other_fee','ppn','grand_total','is_approve', DB::raw('count(trans_no) as total_product')
@@ -136,12 +138,21 @@ class GRNController extends Controller
                 ->when($isapprove !== null, function($query) use ($isapprove){
                     $query->where('is_approve', filter_var($isapprove, FILTER_VALIDATE_BOOLEAN));
                 })
-                ->where(function($query) use ($key){
-                    $query->Where('trans_no', 'like', "%{$key}%");
-                    $query->orWhere('purchase_trans_no', 'like', "%{$key}%");
-                    $query->orWhere('supplier_name', 'like', "%{$key}%");
-                    $query->orWhere('number_id_supplier', 'like', "%{$key}%");
-                    $query->orWhere('received_by', 'like', "%{$key}%");
+                ->where(function($query) use ($key,$filterby, $listFilter){
+                    if($filterby == "all"){
+
+                        $query->Where('trans_no', 'like', "%{$key}%");
+                        $query->orWhere('purchase_trans_no', 'like', "%{$key}%");
+                        $query->orWhere('supplier_name', 'like', "%{$key}%");
+                        $query->orWhere('number_id_supplier', 'like', "%{$key}%");
+                        $query->orWhere('received_by', 'like', "%{$key}%");
+                    } else {
+                        foreach($listFilter as $filter){
+                            if ($filter == $filterby){
+                                $query->orWhere($filter, 'like', "%{$key}%");
+                            }
+                        }
+                    }
                 })
                 ->groupBy('trans_no')->orderBy($orderBy, $ascdesc)->orderBy('id', $ascdesc)->paginate(perPage:$perpage, page:$page);
                 $grns->withPath($request->fullUrl());
@@ -199,8 +210,8 @@ class GRNController extends Controller
                 foreach($dataValidated['items'] as $item){
                     $bonusqty = !empty($item['bonusqty']) ? intval($item['bonusqty']) : 0;
                     $unitbonus = $item['unitbonusqty'];
-                    $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
-                    $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
+                    $convert_value = intval(UnitView::where('id_unit', $item['id_unit'])->first(['convert_value'])->convert_value);
+                    $convert_value_bonus = intval(UnitView::where('id_unit', $unitbonus)->first(['convert_value'])->convert_value);
                     $totalQtyTransaction += (intval($item['qty']) * $convert_value);
                     $totalQtyBonusTransaction += (intval($bonusqty) * $convert_value_bonus);
                 }
@@ -211,8 +222,8 @@ class GRNController extends Controller
                     $unitbonus = $item['unitbonusqty'];
                     $qty = intval($item['qty']);
                     $total = intval($item['sub_total']);
-                    $convert_value = intval(UnitView::where('id', $item['id_unit'])->first(['convert_value'])->convert_value);
-                    $convert_value_bonus = intval(UnitView::where('id', $unitbonus)->first(['convert_value'])->convert_value);
+                    $convert_value = intval(UnitView::where('id_unit', $item['id_unit'])->first(['convert_value'])->convert_value);
+                    $convert_value_bonus = intval(UnitView::where('id_unit', $unitbonus)->first(['convert_value'])->convert_value);
                     $qtyandbonus = ($qty * $convert_value) + ($bonusqty * $convert_value_bonus);
                     $hpp = round((($total / $qtyandbonus ) + $other_fee_per_item), 6);
                     $checkstock = new StockController();

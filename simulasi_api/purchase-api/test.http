@@ -1,7 +1,7 @@
 # Create New Transaction Purchase Return
 POST http://127.0.0.1:8000/api/purchases
 Content-Type: application/json
-Authorization: 21bc82bb-ffe9-4874-9550-881ca10b0566
+Authorization: 0573bd80-85e7-4d78-aea8-d0ddd4ae3765
 
 {
   "branchcode" : "int",
